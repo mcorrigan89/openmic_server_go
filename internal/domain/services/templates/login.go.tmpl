@@ -1,0 +1,25 @@
+{{define "plainBody"}}
+Hi,
+
+Click here to log in to your account: http://localhost:3000/authenticate?token={{.Token}}.
+
+Thanks!
+{{end}}
+
+{{define "htmlBody"}}
+<!doctype html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+
+<body>
+    <p>Hi,</p>
+    <p>Click <a href="http://localhost:3000/authenticate?token={{.Token}}">here</a> to log in to your account.</p>
+    <p>Thanks!</p>
+</body>
+
+</html>
+{{end}}

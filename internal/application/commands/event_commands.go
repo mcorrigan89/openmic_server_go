@@ -51,3 +51,14 @@ type RemoveArtistFromEventCommand struct {
 	EventID  uuid.UUID
 	ArtistID uuid.UUID
 }
+
+type SetTimeslotMarkerCommand struct {
+	EventID     uuid.UUID
+	TimeDisplay string
+	SlotIndex   int
+}
+
+type DeleteTimeslotMarkerCommand struct {
+	EventID      uuid.UUID
+	SlotMarkerID uuid.UUID
+}

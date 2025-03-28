@@ -63,6 +63,14 @@ func NewRouter(mux *http.ServeMux, middleware middleware.Middleware, userHandler
 	}, eventHandler.GetEventByID)
 
 	huma.Register(api, huma.Operation{
+		OperationID: "get-current-event",
+		Method:      http.MethodGet,
+		Path:        "/event/now",
+		Summary:     "Current Event",
+		Tags:        []string{"Event"},
+	}, eventHandler.GetCurrentEvent)
+
+	huma.Register(api, huma.Operation{
 		OperationID: "get-events",
 		Method:      http.MethodGet,
 		Path:        "/events",
@@ -109,6 +117,22 @@ func NewRouter(mux *http.ServeMux, middleware middleware.Middleware, userHandler
 		Summary:     "Remove Artist from Event",
 		Tags:        []string{"Event"},
 	}, eventHandler.RemoveArtistFromEvent)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "set-timeslot",
+		Method:      http.MethodPost,
+		Path:        "/event/{event_id}/timeslot",
+		Summary:     "Set Timeslot",
+		Tags:        []string{"Event"},
+	}, eventHandler.SetTimeslotMarker)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "delete-timeslot",
+		Method:      http.MethodDelete,
+		Path:        "/event/{event_id}/timeslot",
+		Summary:     "Set Timeslot",
+		Tags:        []string{"Event"},
+	}, eventHandler.DeleteTimeslotMarker)
 
 	sse.Register(api, huma.Operation{
 		OperationID: "sse",

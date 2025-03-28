@@ -46,6 +46,27 @@ func (h *EventHandler) GetEventByID(ctx context.Context, input *struct {
 	}, nil
 }
 
+func (h *EventHandler) GetCurrentEvent(ctx context.Context, input *struct{}) (*dto.GetCurrentEventResponse, error) {
+	query := queries.CurrentEventQuery{}
+
+	event, err := h.eventAppService.GetCurrentEvent(ctx, query)
+	if err != nil {
+		return nil, huma.Error500InternalServerError("Failed to get event by ID", err)
+	}
+
+	if event == nil {
+		return &dto.GetCurrentEventResponse{
+			Body: nil,
+		}, nil
+	}
+
+	eventDto := dto.NewEventDtoFromEntity(event)
+
+	return &dto.GetCurrentEventResponse{
+		Body: eventDto,
+	}, nil
+}
+
 func (h *EventHandler) GetUpcomingEvents(ctx context.Context, input *struct {
 }) (*dto.GetEventsResponse, error) {
 
@@ -164,6 +185,45 @@ func (h *EventHandler) RemoveArtistFromEvent(ctx context.Context, input *dto.Rem
 	eventDto := dto.NewEventDtoFromEntity(event)
 
 	return &dto.RemoveArtistFromEventEventResponse{
+		Body: eventDto,
+	}, nil
+}
+
+func (h *EventHandler) SetTimeslotMarker(ctx context.Context, input *dto.SetTimeslotMarkerRequest) (*dto.SetTimeslotMarkerResponse, error) {
+
+	cmd := commands.SetTimeslotMarkerCommand{
+		EventID:     input.EventID,
+		TimeDisplay: input.Body.TimeDisplay,
+		SlotIndex:   input.Body.SlotIndex,
+	}
+
+	event, err := h.eventAppService.SetTimeslotMarker(ctx, cmd)
+	if err != nil {
+		return nil, huma.Error500InternalServerError("Failed to set timeslot", err)
+	}
+
+	eventDto := dto.NewEventDtoFromEntity(event)
+
+	return &dto.SetTimeslotMarkerResponse{
+		Body: eventDto,
+	}, nil
+}
+
+func (h *EventHandler) DeleteTimeslotMarker(ctx context.Context, input *dto.DeleteTimeslotMarkerRequest) (*dto.SetTimeslotMarkerResponse, error) {
+
+	cmd := commands.DeleteTimeslotMarkerCommand{
+		EventID:      input.EventID,
+		SlotMarkerID: input.Body.TimeslotMarkerID,
+	}
+
+	event, err := h.eventAppService.DeleteTimeslotMarker(ctx, cmd)
+	if err != nil {
+		return nil, huma.Error500InternalServerError("Failed to set timeslot", err)
+	}
+
+	eventDto := dto.NewEventDtoFromEntity(event)
+
+	return &dto.SetTimeslotMarkerResponse{
 		Body: eventDto,
 	}, nil
 }

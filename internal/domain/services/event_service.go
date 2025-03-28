@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/mcorrigan89/openmic/internal/common"
@@ -18,6 +19,8 @@ type EventService interface {
 	DeleteEvent(ctx context.Context, querier models.Querier, eventID uuid.UUID) error
 	AddArtistToEvent(ctx context.Context, querier models.Querier, eventID uuid.UUID, artistID uuid.UUID) error
 	RemoveArtistFromEvent(ctx context.Context, querier models.Querier, eventID uuid.UUID, artistID uuid.UUID) error
+	SetTimeslotMarker(ctx context.Context, querier models.Querier, eventID uuid.UUID, index int, timeslotDisplay string) error
+	DeleteTimeslotMarker(ctx context.Context, querier models.Querier, eventID uuid.UUID, timeslotMarkerID uuid.UUID) error
 }
 
 type eventService struct {
@@ -110,5 +113,51 @@ func (s *eventService) RemoveArtistFromEvent(ctx context.Context, querier models
 		return err
 	}
 
+	return nil
+}
+
+func (s *eventService) SetTimeslotMarker(ctx context.Context, querier models.Querier, eventID uuid.UUID, index int, timeslotDisplay string) error {
+	event, err := s.eventRepo.GetEventByID(ctx, querier, eventID)
+	if err != nil {
+		return err
+	}
+
+	markerEntity := event.TimeSlotMarkerByDisplay(timeslotDisplay)
+	fmt.Println(markerEntity)
+	if markerEntity != nil {
+		markerEntity.Index = index
+		err = s.eventRepo.UpdateTimeslotMarker(ctx, querier, markerEntity)
+		if err != nil {
+			return err
+		}
+	} else {
+		newMarker := entities.TimeMarkerEntity{
+			ID:    uuid.New(),
+			Time:  timeslotDisplay,
+			Index: index,
+			Type:  "TIME",
+		}
+		err = s.eventRepo.CreateTimeslotMarker(ctx, querier, eventID, &newMarker)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *eventService) DeleteTimeslotMarker(ctx context.Context, querier models.Querier, eventID uuid.UUID, timeslotMarkerID uuid.UUID) error {
+	event, err := s.eventRepo.GetEventByID(ctx, querier, eventID)
+	if err != nil {
+		return err
+	}
+
+	markerEntity := event.TimeSlotMarkerByID(timeslotMarkerID)
+	if markerEntity != nil {
+		err = s.eventRepo.DeleteTimeslotMarker(ctx, querier, markerEntity.ID)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }

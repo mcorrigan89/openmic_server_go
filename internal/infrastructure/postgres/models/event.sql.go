@@ -13,7 +13,7 @@ import (
 )
 
 const addArtistToEvent = `-- name: AddArtistToEvent :exec
-INSERT INTO timeslot (id, event_id, artist_id, artist_name_override, sort_order)
+INSERT INTO timeslot (id, event_id, artist_id, artist_name_override, sort_key)
 VALUES ($1, $2, $3, $4, $5)
 `
 
@@ -22,7 +22,7 @@ type AddArtistToEventParams struct {
 	EventID            uuid.UUID `json:"event_id"`
 	ArtistID           uuid.UUID `json:"artist_id"`
 	ArtistNameOverride *string   `json:"artist_name_override"`
-	SortOrder          string    `json:"sort_order"`
+	SortKey            string    `json:"sort_key"`
 }
 
 func (q *Queries) AddArtistToEvent(ctx context.Context, arg AddArtistToEventParams) error {
@@ -31,7 +31,7 @@ func (q *Queries) AddArtistToEvent(ctx context.Context, arg AddArtistToEventPara
 		arg.EventID,
 		arg.ArtistID,
 		arg.ArtistNameOverride,
-		arg.SortOrder,
+		arg.SortKey,
 	)
 	return err
 }
@@ -68,6 +68,38 @@ func (q *Queries) CreateEvent(ctx context.Context, arg CreateEventParams) (Event
 	return i, err
 }
 
+const createTimeslotMarker = `-- name: CreateTimeslotMarker :one
+INSERT INTO timeslot_marker (id, event_id, marker_type, marker_value, timeslot_index)
+VALUES ($1, $2, $3, $4, $5) RETURNING id, event_id, timeslot_index, marker_type, marker_value
+`
+
+type CreateTimeslotMarkerParams struct {
+	ID            uuid.UUID `json:"id"`
+	EventID       uuid.UUID `json:"event_id"`
+	MarkerType    string    `json:"marker_type"`
+	MarkerValue   string    `json:"marker_value"`
+	TimeslotIndex int32     `json:"timeslot_index"`
+}
+
+func (q *Queries) CreateTimeslotMarker(ctx context.Context, arg CreateTimeslotMarkerParams) (TimeslotMarker, error) {
+	row := q.db.QueryRow(ctx, createTimeslotMarker,
+		arg.ID,
+		arg.EventID,
+		arg.MarkerType,
+		arg.MarkerValue,
+		arg.TimeslotIndex,
+	)
+	var i TimeslotMarker
+	err := row.Scan(
+		&i.ID,
+		&i.EventID,
+		&i.TimeslotIndex,
+		&i.MarkerType,
+		&i.MarkerValue,
+	)
+	return i, err
+}
+
 const deleteEvent = `-- name: DeleteEvent :exec
 DELETE FROM event
 WHERE id = $1
@@ -78,13 +110,26 @@ func (q *Queries) DeleteEvent(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const deleteTimeslotMarker = `-- name: DeleteTimeslotMarker :exec
+DELETE FROM timeslot_marker
+WHERE id = $1
+`
+
+func (q *Queries) DeleteTimeslotMarker(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteTimeslotMarker, id)
+	return err
+}
+
 const getAllEvents = `-- name: GetAllEvents :many
-SELECT event.id, event.event_type, event.start_time, event.end_time, event.created_at, event.updated_at, event.version FROM event
+SELECT event.id, event.event_type, event.start_time, event.end_time, event.created_at, event.updated_at, event.version,  json_agg(timeslot_marker.*) FROM event
+LEFT JOIN timeslot_marker ON event.id = timeslot_marker.event_id
+GROUP BY event.id
 ORDER BY event.start_time ASC
 `
 
 type GetAllEventsRow struct {
-	Event Event `json:"event"`
+	Event   Event  `json:"event"`
+	JsonAgg []byte `json:"json_agg"`
 }
 
 func (q *Queries) GetAllEvents(ctx context.Context) ([]GetAllEventsRow, error) {
@@ -104,6 +149,7 @@ func (q *Queries) GetAllEvents(ctx context.Context) ([]GetAllEventsRow, error) {
 			&i.Event.CreatedAt,
 			&i.Event.UpdatedAt,
 			&i.Event.Version,
+			&i.JsonAgg,
 		); err != nil {
 			return nil, err
 		}
@@ -116,12 +162,15 @@ func (q *Queries) GetAllEvents(ctx context.Context) ([]GetAllEventsRow, error) {
 }
 
 const getEventByID = `-- name: GetEventByID :one
-SELECT event.id, event.event_type, event.start_time, event.end_time, event.created_at, event.updated_at, event.version FROM event
+SELECT event.id, event.event_type, event.start_time, event.end_time, event.created_at, event.updated_at, event.version, json_agg(timeslot_marker.*) as markers FROM event
+LEFT JOIN timeslot_marker ON event.id = timeslot_marker.event_id
 WHERE event.id = $1
+GROUP BY event.id
 `
 
 type GetEventByIDRow struct {
-	Event Event `json:"event"`
+	Event   Event  `json:"event"`
+	Markers []byte `json:"markers"`
 }
 
 func (q *Queries) GetEventByID(ctx context.Context, id uuid.UUID) (GetEventByIDRow, error) {
@@ -135,6 +184,7 @@ func (q *Queries) GetEventByID(ctx context.Context, id uuid.UUID) (GetEventByIDR
 		&i.Event.CreatedAt,
 		&i.Event.UpdatedAt,
 		&i.Event.Version,
+		&i.Markers,
 	)
 	return i, err
 }
@@ -155,10 +205,10 @@ func (q *Queries) RemoveArtistFromEvent(ctx context.Context, arg RemoveArtistFro
 }
 
 const timeSlotsByEventID = `-- name: TimeSlotsByEventID :many
-SELECT timeslot.id, timeslot.event_id, timeslot.artist_id, timeslot.artist_name_override, timeslot.sort_order, timeslot.created_at, timeslot.updated_at, timeslot.version, artist.id, artist.artist_title, artist.artist_subtitle, artist.bio, artist.avatar_id, artist.user_id, artist.created_at, artist.updated_at, artist.version FROM timeslot
+SELECT timeslot.id, timeslot.event_id, timeslot.artist_id, timeslot.artist_name_override, timeslot.song_count, timeslot.sort_key, timeslot.created_at, timeslot.updated_at, timeslot.version, artist.id, artist.artist_title, artist.artist_subtitle, artist.bio, artist.avatar_id, artist.user_id, artist.created_at, artist.updated_at, artist.version FROM timeslot
 JOIN artist ON timeslot.artist_id = artist.id
 WHERE timeslot.event_id = $1
-ORDER BY timeslot.sort_order ASC
+ORDER BY timeslot.sort_key ASC
 `
 
 type TimeSlotsByEventIDRow struct {
@@ -180,7 +230,8 @@ func (q *Queries) TimeSlotsByEventID(ctx context.Context, eventID uuid.UUID) ([]
 			&i.Timeslot.EventID,
 			&i.Timeslot.ArtistID,
 			&i.Timeslot.ArtistNameOverride,
-			&i.Timeslot.SortOrder,
+			&i.Timeslot.SongCount,
+			&i.Timeslot.SortKey,
 			&i.Timeslot.CreatedAt,
 			&i.Timeslot.UpdatedAt,
 			&i.Timeslot.Version,
@@ -233,6 +284,37 @@ func (q *Queries) UpdateEvent(ctx context.Context, arg UpdateEventParams) (Event
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Version,
+	)
+	return i, err
+}
+
+const updateTimeslotMarker = `-- name: UpdateTimeslotMarker :one
+UPDATE timeslot_marker
+SET marker_type = $1, marker_value = $2, timeslot_index = $3
+WHERE id = $4 RETURNING id, event_id, timeslot_index, marker_type, marker_value
+`
+
+type UpdateTimeslotMarkerParams struct {
+	MarkerType    string    `json:"marker_type"`
+	MarkerValue   string    `json:"marker_value"`
+	TimeslotIndex int32     `json:"timeslot_index"`
+	ID            uuid.UUID `json:"id"`
+}
+
+func (q *Queries) UpdateTimeslotMarker(ctx context.Context, arg UpdateTimeslotMarkerParams) (TimeslotMarker, error) {
+	row := q.db.QueryRow(ctx, updateTimeslotMarker,
+		arg.MarkerType,
+		arg.MarkerValue,
+		arg.TimeslotIndex,
+		arg.ID,
+	)
+	var i TimeslotMarker
+	err := row.Scan(
+		&i.ID,
+		&i.EventID,
+		&i.TimeslotIndex,
+		&i.MarkerType,
+		&i.MarkerValue,
 	)
 	return i, err
 }

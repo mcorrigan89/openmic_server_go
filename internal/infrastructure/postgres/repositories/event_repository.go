@@ -2,6 +2,8 @@ package repositories
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/mcorrigan89/openmic/internal/domain/entities"
@@ -20,7 +22,15 @@ func (repo *postgresEventRepository) GetEventByID(ctx context.Context, querier m
 	ctx, cancel := context.WithTimeout(ctx, postgres.DefaultTimeout)
 	defer cancel()
 
+	fmt.Println("eventID: ", eventID)
+
 	row, err := querier.GetEventByID(ctx, eventID)
+	if err != nil {
+		return nil, err
+	}
+
+	var markerModels []*models.TimeslotMarker
+	err = json.Unmarshal(row.Markers, &markerModels)
 	if err != nil {
 		return nil, err
 	}
@@ -30,12 +40,15 @@ func (repo *postgresEventRepository) GetEventByID(ctx context.Context, querier m
 		return nil, err
 	}
 
-	timeslots := make([]*entities.TimeSlotEntity, 0)
+	timeslotArgs := make([]*entities.NewEventEntitySlotsArgs, 0)
 	for _, timeslotRow := range timeslotRows {
-		timeslots = append(timeslots, entities.NewTimeSlotEntity(timeslotRow.Timeslot, timeslotRow.Artist))
+		timeslotArgs = append(timeslotArgs, &entities.NewEventEntitySlotsArgs{
+			TimeSlot: timeslotRow.Timeslot,
+			Artist:   timeslotRow.Artist,
+		})
 	}
 
-	return entities.NewEventEntity(row.Event, timeslots), nil
+	return entities.NewEventEntity(row.Event, timeslotArgs, markerModels), nil
 }
 
 func (repo *postgresEventRepository) GetEvents(ctx context.Context, querier models.Querier) ([]*entities.EventEntity, error) {
@@ -49,7 +62,7 @@ func (repo *postgresEventRepository) GetEvents(ctx context.Context, querier mode
 
 	var eventEntities []*entities.EventEntity
 	for _, row := range rows {
-		eventEntities = append(eventEntities, entities.NewEventEntity(row.Event, nil))
+		eventEntities = append(eventEntities, entities.NewEventEntity(row.Event, nil, nil))
 	}
 
 	return eventEntities, nil
@@ -69,7 +82,7 @@ func (repo *postgresEventRepository) CreateEvent(ctx context.Context, querier mo
 		return nil, err
 	}
 
-	return entities.NewEventEntity(row, nil), nil
+	return entities.NewEventEntity(row, nil, nil), nil
 }
 
 func (repo *postgresEventRepository) UpdateEvent(ctx context.Context, querier models.Querier, event *entities.EventEntity) (*entities.EventEntity, error) {
@@ -86,7 +99,7 @@ func (repo *postgresEventRepository) UpdateEvent(ctx context.Context, querier mo
 		return nil, err
 	}
 
-	return entities.NewEventEntity(row, nil), nil
+	return entities.NewEventEntity(row, nil, nil), nil
 }
 
 func (repo *postgresEventRepository) DeleteEvent(ctx context.Context, querier models.Querier, eventID uuid.UUID) error {
@@ -110,7 +123,7 @@ func (repo *postgresEventRepository) AddArtistToEvent(ctx context.Context, queri
 		EventID:            eventID,
 		ArtistID:           artistID,
 		ArtistNameOverride: artistNameOverride,
-		SortOrder:          sortKey,
+		SortKey:            sortKey,
 	})
 	if err != nil {
 		return err
@@ -127,6 +140,54 @@ func (repo *postgresEventRepository) RemoveArtistFromEvent(ctx context.Context, 
 		EventID:  eventID,
 		ArtistID: artistID,
 	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (repo *postgresEventRepository) CreateTimeslotMarker(ctx context.Context, querier models.Querier, eventID uuid.UUID, timeSlotMarker *entities.TimeMarkerEntity) error {
+	ctx, cancel := context.WithTimeout(ctx, postgres.DefaultTimeout)
+	defer cancel()
+
+	_, err := querier.CreateTimeslotMarker(ctx, models.CreateTimeslotMarkerParams{
+		EventID:       eventID,
+		ID:            timeSlotMarker.ID,
+		MarkerType:    timeSlotMarker.Type,
+		MarkerValue:   timeSlotMarker.Time,
+		TimeslotIndex: int32(timeSlotMarker.Index),
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (repo *postgresEventRepository) UpdateTimeslotMarker(ctx context.Context, querier models.Querier, timeSlotMarker *entities.TimeMarkerEntity) error {
+	ctx, cancel := context.WithTimeout(ctx, postgres.DefaultTimeout)
+	defer cancel()
+
+	_, err := querier.UpdateTimeslotMarker(ctx, models.UpdateTimeslotMarkerParams{
+		ID:            timeSlotMarker.ID,
+		TimeslotIndex: int32(timeSlotMarker.Index),
+		MarkerValue:   timeSlotMarker.Time,
+		MarkerType:    timeSlotMarker.Type,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
+func (repo *postgresEventRepository) DeleteTimeslotMarker(ctx context.Context, querier models.Querier, timeslotMarkerID uuid.UUID) error {
+	ctx, cancel := context.WithTimeout(ctx, postgres.DefaultTimeout)
+	defer cancel()
+
+	err := querier.DeleteTimeslotMarker(ctx, timeslotMarkerID)
 	if err != nil {
 		return err
 	}

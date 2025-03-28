@@ -78,6 +78,7 @@ CREATE TABLE IF NOT EXISTS timeslot (
   event_id UUID NOT NULL REFERENCES event(id) ON DELETE CASCADE,
   artist_id UUID NOT NULL REFERENCES artist(id) ON DELETE CASCADE,
   artist_name_override TEXT,
+  song_count integer NOT NULL DEFAULT 1,
   sort_key TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -87,7 +88,7 @@ CREATE TABLE IF NOT EXISTS timeslot (
 CREATE TABLE IF NOT EXISTS timeslot_marker (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   event_id UUID NOT NULL REFERENCES event(id) ON DELETE CASCADE,
-  timeslot_id UUID NOT NULL REFERENCES timeslot(id) ON DELETE CASCADE,
+  timeslot_index integer NOT NULL,
   marker_type TEXT NOT NULL,
   marker_value TEXT NOT NULL
 );

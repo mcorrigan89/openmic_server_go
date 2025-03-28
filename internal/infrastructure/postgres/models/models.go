@@ -65,18 +65,19 @@ type Timeslot struct {
 	EventID            uuid.UUID  `json:"event_id"`
 	ArtistID           uuid.UUID  `json:"artist_id"`
 	ArtistNameOverride *string    `json:"artist_name_override"`
-	SortOrder          string     `json:"sort_order"`
+	SongCount          int32      `json:"song_count"`
+	SortKey            string     `json:"sort_key"`
 	CreatedAt          *time.Time `json:"created_at"`
 	UpdatedAt          *time.Time `json:"updated_at"`
 	Version            int32      `json:"version"`
 }
 
 type TimeslotMarker struct {
-	ID          uuid.UUID `json:"id"`
-	EventID     uuid.UUID `json:"event_id"`
-	TimeslotID  uuid.UUID `json:"timeslot_id"`
-	MarkerType  string    `json:"marker_type"`
-	MarkerValue string    `json:"marker_value"`
+	ID            uuid.UUID `json:"id"`
+	EventID       uuid.UUID `json:"event_id"`
+	TimeslotIndex int32     `json:"timeslot_index"`
+	MarkerType    string    `json:"marker_type"`
+	MarkerValue   string    `json:"marker_value"`
 }
 
 type User struct {

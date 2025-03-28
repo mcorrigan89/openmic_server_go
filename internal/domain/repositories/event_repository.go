@@ -16,4 +16,7 @@ type EventRepository interface {
 	DeleteEvent(ctx context.Context, querier models.Querier, id uuid.UUID) error
 	AddArtistToEvent(ctx context.Context, querier models.Querier, eventID uuid.UUID, artistID uuid.UUID, sortKet string, artistNameOverride *string) error
 	RemoveArtistFromEvent(ctx context.Context, querier models.Querier, eventID uuid.UUID, artistID uuid.UUID) error
+	CreateTimeslotMarker(ctx context.Context, querier models.Querier, eventID uuid.UUID, markerEntity *entities.TimeMarkerEntity) error
+	UpdateTimeslotMarker(ctx context.Context, querier models.Querier, markerEntity *entities.TimeMarkerEntity) error
+	DeleteTimeslotMarker(ctx context.Context, querier models.Querier, timeslotMarkerID uuid.UUID) error
 }

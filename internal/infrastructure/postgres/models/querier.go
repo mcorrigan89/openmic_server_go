@@ -16,10 +16,12 @@ type Querier interface {
 	CreateEvent(ctx context.Context, arg CreateEventParams) (Event, error)
 	CreateImage(ctx context.Context, arg CreateImageParams) (Image, error)
 	CreateReferenceLink(ctx context.Context, arg CreateReferenceLinkParams) (ReferenceLink, error)
+	CreateTimeslotMarker(ctx context.Context, arg CreateTimeslotMarkerParams) (TimeslotMarker, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	CreateUserSession(ctx context.Context, arg CreateUserSessionParams) (UserSession, error)
 	DeleteEvent(ctx context.Context, id uuid.UUID) error
 	DeleteReferenceLink(ctx context.Context, id uuid.UUID) (ReferenceLink, error)
+	DeleteTimeslotMarker(ctx context.Context, id uuid.UUID) error
 	ExpireUserSession(ctx context.Context, id uuid.UUID) error
 	GetAllArtists(ctx context.Context) ([]GetAllArtistsRow, error)
 	GetAllEvents(ctx context.Context) ([]GetAllEventsRow, error)
@@ -38,6 +40,7 @@ type Querier interface {
 	TimeSlotsByEventID(ctx context.Context, eventID uuid.UUID) ([]TimeSlotsByEventIDRow, error)
 	UpdateArtist(ctx context.Context, arg UpdateArtistParams) (Artist, error)
 	UpdateEvent(ctx context.Context, arg UpdateEventParams) (Event, error)
+	UpdateTimeslotMarker(ctx context.Context, arg UpdateTimeslotMarkerParams) (TimeslotMarker, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 }
 

@@ -8,5 +8,6 @@ type EventByIDQuery struct {
 	ID uuid.UUID
 }
 
-type EventsQuery struct {
-}
+type CurrentEventQuery struct{}
+
+type EventsQuery struct{}

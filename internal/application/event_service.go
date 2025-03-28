@@ -3,7 +3,9 @@ package application
 import (
 	"context"
 	"sync"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/mcorrigan89/openmic/internal/application/commands"
 	"github.com/mcorrigan89/openmic/internal/application/queries"
@@ -19,12 +21,15 @@ import (
 
 type EventApplicationService interface {
 	GetEventByID(ctx context.Context, query queries.EventByIDQuery) (*entities.EventEntity, error)
+	GetCurrentEvent(ctx context.Context, query queries.CurrentEventQuery) (*entities.EventEntity, error)
 	GetEvents(ctx context.Context, query queries.EventsQuery) ([]*entities.EventEntity, error)
 	CreateEvent(ctx context.Context, cmd commands.CreateNewEventCommand) (*entities.EventEntity, error)
 	UpdateEvent(ctx context.Context, cmd commands.UpdateEventCommand) (*entities.EventEntity, error)
 	DeleteEvent(ctx context.Context, query commands.DeleteEventCommand) error
 	AddArtistToEvent(ctx context.Context, cmd commands.AddArtistToEventCommand) (*entities.EventEntity, error)
 	RemoveArtistFromEvent(ctx context.Context, cmd commands.RemoveArtistFromEventCommand) (*entities.EventEntity, error)
+	SetTimeslotMarker(ctx context.Context, cmd commands.SetTimeslotMarkerCommand) (*entities.EventEntity, error)
+	DeleteTimeslotMarker(ctx context.Context, cmd commands.DeleteTimeslotMarkerCommand) (*entities.EventEntity, error)
 	MessageBus() *bus.MessageBus[*dto.EventDto]
 }
 
@@ -59,6 +64,39 @@ func (app *eventApplicationService) GetEventByID(ctx context.Context, query quer
 	app.logger.Info().Ctx(ctx).Msg("Getting event by ID")
 
 	event, err := app.eventService.GetEventByID(ctx, app.queries, query.ID)
+	if err != nil {
+		app.logger.Err(err).Ctx(ctx).Msg("Failed to get event by ID")
+		return nil, err
+	}
+
+	return event, nil
+}
+
+func (app *eventApplicationService) GetCurrentEvent(ctx context.Context, query queries.CurrentEventQuery) (*entities.EventEntity, error) {
+	app.logger.Info().Ctx(ctx).Msg("Getting current event")
+
+	events, err := app.eventService.GetEvents(ctx, app.queries)
+	if err != nil {
+		app.logger.Err(err).Ctx(ctx).Msg("Failed to get all events")
+		return nil, err
+	}
+
+	currentYear, currentMonth, currentDay := time.Now().Date()
+	var currentEventID uuid.UUID
+
+	for _, event := range events {
+		year, month, day := event.StartTime.Date()
+		if year == currentYear && month == currentMonth && day == currentDay {
+			currentEventID = event.ID
+			break
+		}
+	}
+
+	if currentEventID == uuid.Nil {
+		return nil, nil
+	}
+
+	event, err := app.eventService.GetEventByID(ctx, app.queries, currentEventID)
 	if err != nil {
 		app.logger.Err(err).Ctx(ctx).Msg("Failed to get event by ID")
 		return nil, err
@@ -143,6 +181,42 @@ func (app *eventApplicationService) RemoveArtistFromEvent(ctx context.Context, c
 	err := app.eventService.RemoveArtistFromEvent(ctx, app.queries, cmd.EventID, cmd.ArtistID)
 	if err != nil {
 		app.logger.Err(err).Ctx(ctx).Msg("Failed to remove artist from event")
+		return nil, err
+	}
+
+	event, err := app.eventService.GetEventByID(ctx, app.queries, cmd.EventID)
+	if err != nil {
+		app.logger.Err(err).Ctx(ctx).Msg("Failed to get event by ID")
+		return nil, err
+	}
+
+	return event, nil
+}
+
+func (app *eventApplicationService) SetTimeslotMarker(ctx context.Context, cmd commands.SetTimeslotMarkerCommand) (*entities.EventEntity, error) {
+	app.logger.Info().Ctx(ctx).Msg("Setting timeslot marker")
+
+	err := app.eventService.SetTimeslotMarker(ctx, app.queries, cmd.EventID, cmd.SlotIndex, cmd.TimeDisplay)
+	if err != nil {
+		app.logger.Err(err).Ctx(ctx).Msg("Failed to set timeslot")
+		return nil, err
+	}
+
+	event, err := app.eventService.GetEventByID(ctx, app.queries, cmd.EventID)
+	if err != nil {
+		app.logger.Err(err).Ctx(ctx).Msg("Failed to get event by ID")
+		return nil, err
+	}
+
+	return event, nil
+}
+
+func (app *eventApplicationService) DeleteTimeslotMarker(ctx context.Context, cmd commands.DeleteTimeslotMarkerCommand) (*entities.EventEntity, error) {
+	app.logger.Info().Ctx(ctx).Msg("Deleting timeslot marker")
+
+	err := app.eventService.DeleteTimeslotMarker(ctx, app.queries, cmd.EventID, cmd.SlotMarkerID)
+	if err != nil {
+		app.logger.Err(err).Ctx(ctx).Msg("Failed to set timeslot")
 		return nil, err
 	}
 

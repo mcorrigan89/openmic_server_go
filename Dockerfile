@@ -5,7 +5,7 @@ FROM golang:1.23-alpine AS build
 WORKDIR /app
 COPY . .
 
-RUN GOOS=linux go build -o ./bin/main ./cmd
+RUN go build -o ./bin/main ./cmd
 
 FROM gcr.io/distroless/static-debian12
 

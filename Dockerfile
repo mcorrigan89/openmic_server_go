@@ -1,15 +1,12 @@
 # syntax=docker/dockerfile:1
 
 # Build
-FROM golang:1.23-alpine AS build
-WORKDIR /app
+FROM golang:1.22
+WORKDIR /usr/src/app
+
+RUN apt update && apt install --no-install-recommends libvips libvips-dev pkg-config -y
 COPY . .
-
-RUN go build -o ./bin/main ./cmd
-
-FROM gcr.io/distroless/static-debian12
-
-COPY --from=build /bin .
+RUN go build -o=./bin/main ./cmd
 
 EXPOSE 8080
 

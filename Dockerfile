@@ -6,7 +6,7 @@ WORKDIR /usr/src/app
 
 RUN apt update && apt install --no-install-recommends libvips libvips-dev pkg-config -y
 COPY . .
-RUN go build -o=./bin/main ./cmd
+RUN GOOS=linux go build -o=./bin/main ./cmd
 
 EXPOSE 8080
 

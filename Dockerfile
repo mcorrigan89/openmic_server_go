@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Build
-FROM golang:1.22
+FROM golang:1.23
 WORKDIR /usr/src/app
 
 RUN apt update && apt install --no-install-recommends libvips libvips-dev pkg-config -y

@@ -27,9 +27,11 @@ func (repo *postgresEventRepository) GetEventByID(ctx context.Context, querier m
 	}
 
 	var markerModels []*models.TimeslotMarker
-	err = json.Unmarshal(row.Markers, &markerModels)
-	if err != nil {
-		return nil, err
+	if row.Markers != nil {
+		err = json.Unmarshal(row.Markers, &markerModels)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	timeslotRows, err := querier.TimeSlotsByEventID(ctx, eventID)

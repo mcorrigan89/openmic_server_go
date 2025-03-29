@@ -59,8 +59,8 @@ func main() {
 	imageMediaService := media.NewImageMediaService(blobStorageService)
 
 	userService := services.NewUserService(postgresUserRepository, postgresReferenceLinkRepository, postgresImageRepository)
-	artistService := services.NewArtistService(postgresArtistRepositoy)
-	eventService := services.NewEventService(postgresEventRepositoy)
+	artistService := services.NewArtistService(&logger, postgresArtistRepositoy)
+	eventService := services.NewEventService(&logger, postgresEventRepositoy)
 	emailService := services.NewEmailService(smtpService)
 	emailTemplateService := services.NewEmailTemplateService(&cfg)
 	imageService := services.NewImageService(postgresImageRepository)

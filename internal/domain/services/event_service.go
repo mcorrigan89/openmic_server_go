@@ -8,6 +8,7 @@ import (
 	"github.com/mcorrigan89/openmic/internal/domain/entities"
 	"github.com/mcorrigan89/openmic/internal/domain/repositories"
 	"github.com/mcorrigan89/openmic/internal/infrastructure/postgres/models"
+	"github.com/rs/zerolog"
 )
 
 type EventService interface {
@@ -24,16 +25,18 @@ type EventService interface {
 }
 
 type eventService struct {
+	logger    *zerolog.Logger
 	eventRepo repositories.EventRepository
 }
 
-func NewEventService(eventRepo repositories.EventRepository) *eventService {
-	return &eventService{eventRepo: eventRepo}
+func NewEventService(logger *zerolog.Logger, eventRepo repositories.EventRepository) *eventService {
+	return &eventService{logger: logger, eventRepo: eventRepo}
 }
 
 func (s *eventService) GetEventByID(ctx context.Context, querier models.Querier, eventID uuid.UUID) (*entities.EventEntity, error) {
 	event, err := s.eventRepo.GetEventByID(ctx, querier, eventID)
 	if err != nil {
+		s.logger.Err(err).Ctx(ctx).Msg("Failed to get event by ID")
 		return nil, err
 	}
 
@@ -43,6 +46,7 @@ func (s *eventService) GetEventByID(ctx context.Context, querier models.Querier,
 func (s *eventService) GetEvents(ctx context.Context, querier models.Querier) ([]*entities.EventEntity, error) {
 	events, err := s.eventRepo.GetEvents(ctx, querier)
 	if err != nil {
+		s.logger.Err(err).Ctx(ctx).Msg("Failed to get events")
 		return nil, err
 	}
 
@@ -52,6 +56,7 @@ func (s *eventService) GetEvents(ctx context.Context, querier models.Querier) ([
 func (s *eventService) CreateEvent(ctx context.Context, querier models.Querier, event *entities.EventEntity) (*entities.EventEntity, error) {
 	eventEntity, err := s.eventRepo.CreateEvent(ctx, querier, event)
 	if err != nil {
+		s.logger.Err(err).Ctx(ctx).Msg("Failed to create event")
 		return nil, err
 	}
 
@@ -61,6 +66,7 @@ func (s *eventService) CreateEvent(ctx context.Context, querier models.Querier, 
 func (s *eventService) UpdateEvent(ctx context.Context, querier models.Querier, event *entities.EventEntity) (*entities.EventEntity, error) {
 	eventEntity, err := s.eventRepo.UpdateEvent(ctx, querier, event)
 	if err != nil {
+		s.logger.Err(err).Ctx(ctx).Msg("Failed to update event")
 		return nil, err
 	}
 
@@ -70,6 +76,7 @@ func (s *eventService) UpdateEvent(ctx context.Context, querier models.Querier, 
 func (s *eventService) DeleteEvent(ctx context.Context, querier models.Querier, eventID uuid.UUID) error {
 	err := s.eventRepo.DeleteEvent(ctx, querier, eventID)
 	if err != nil {
+		s.logger.Err(err).Ctx(ctx).Msg("Failed to delete event")
 		return err
 	}
 
@@ -79,6 +86,7 @@ func (s *eventService) DeleteEvent(ctx context.Context, querier models.Querier, 
 func (s *eventService) UpdateTimeSlot(ctx context.Context, querier models.Querier, timeslot *entities.TimeSlotEntity) error {
 	err := s.eventRepo.UpdateTimeSlot(ctx, querier, timeslot)
 	if err != nil {
+		s.logger.Err(err).Ctx(ctx).Msg("Failed to update timeslot")
 		return err
 	}
 
@@ -89,6 +97,7 @@ func (s *eventService) AddArtistToEvent(ctx context.Context, querier models.Quer
 
 	event, err := s.eventRepo.GetEventByID(ctx, querier, eventID)
 	if err != nil {
+		s.logger.Err(err).Ctx(ctx).Msg("Failed to get event by ID")
 		return err
 	}
 	timeSlots := event.TimeSlots()
@@ -99,17 +108,20 @@ func (s *eventService) AddArtistToEvent(ctx context.Context, querier models.Quer
 		lastTimeslot := timeSlots[len(timeSlots)-1]
 		sortKey, err = common.KeyBetween(lastTimeslot.SortKey, "")
 		if err != nil {
+			s.logger.Err(err).Ctx(ctx).Msg("Failed to generate sort key")
 			return err
 		}
 	} else {
 		sortKey, err = common.KeyBetween("", "")
 		if err != nil {
+			s.logger.Err(err).Ctx(ctx).Msg("Failed to generate empty sort key")
 			return err
 		}
 	}
 
 	err = s.eventRepo.AddArtistToEvent(ctx, querier, eventID, artistID, sortKey, nil)
 	if err != nil {
+		s.logger.Err(err).Ctx(ctx).Msg("Failed to add artist to event")
 		return err
 	}
 
@@ -119,6 +131,7 @@ func (s *eventService) AddArtistToEvent(ctx context.Context, querier models.Quer
 func (s *eventService) RemoveArtistFromEvent(ctx context.Context, querier models.Querier, eventID uuid.UUID, artistID uuid.UUID) error {
 	err := s.eventRepo.RemoveArtistFromEvent(ctx, querier, eventID, artistID)
 	if err != nil {
+		s.logger.Err(err).Ctx(ctx).Msg("Failed to remove artist from event")
 		return err
 	}
 
@@ -128,6 +141,7 @@ func (s *eventService) RemoveArtistFromEvent(ctx context.Context, querier models
 func (s *eventService) SetTimeslotMarker(ctx context.Context, querier models.Querier, eventID uuid.UUID, index int, timeslotDisplay string) error {
 	event, err := s.eventRepo.GetEventByID(ctx, querier, eventID)
 	if err != nil {
+		s.logger.Err(err).Ctx(ctx).Msg("Failed to get event by ID")
 		return err
 	}
 
@@ -136,6 +150,7 @@ func (s *eventService) SetTimeslotMarker(ctx context.Context, querier models.Que
 		markerEntity.Index = index
 		err = s.eventRepo.UpdateTimeslotMarker(ctx, querier, markerEntity)
 		if err != nil {
+			s.logger.Err(err).Ctx(ctx).Msg("Failed to update timeslot marker")
 			return err
 		}
 	} else {
@@ -147,6 +162,7 @@ func (s *eventService) SetTimeslotMarker(ctx context.Context, querier models.Que
 		}
 		err = s.eventRepo.CreateTimeslotMarker(ctx, querier, eventID, &newMarker)
 		if err != nil {
+			s.logger.Err(err).Ctx(ctx).Msg("Failed to create timeslot marker")
 			return err
 		}
 	}
@@ -157,6 +173,7 @@ func (s *eventService) SetTimeslotMarker(ctx context.Context, querier models.Que
 func (s *eventService) DeleteTimeslotMarker(ctx context.Context, querier models.Querier, eventID uuid.UUID, timeslotMarkerID uuid.UUID) error {
 	event, err := s.eventRepo.GetEventByID(ctx, querier, eventID)
 	if err != nil {
+		s.logger.Err(err).Ctx(ctx).Msg("Failed to get event by ID")
 		return err
 	}
 
@@ -164,6 +181,7 @@ func (s *eventService) DeleteTimeslotMarker(ctx context.Context, querier models.
 	if markerEntity != nil {
 		err = s.eventRepo.DeleteTimeslotMarker(ctx, querier, markerEntity.ID)
 		if err != nil {
+			s.logger.Err(err).Ctx(ctx).Msg("Failed to delete timeslot marker")
 			return err
 		}
 	}

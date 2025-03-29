@@ -17,11 +17,12 @@ type EventEntity struct {
 }
 
 type TimeSlotEntity struct {
-	ID          uuid.UUID
-	SortKey     string
-	Artist      *ArtistEntity
-	SongCount   int32
-	TimeDisplay time.Time
+	ID           uuid.UUID
+	NameOverride *string
+	SortKey      string
+	Artist       *ArtistEntity
+	SongCount    int32
+	TimeDisplay  time.Time
 }
 
 type TimeMarkerEntity struct {
@@ -81,10 +82,10 @@ func (e *EventEntity) TimeMarkers() []*TimeMarkerEntity {
 	return e.markers
 }
 
-func (e *EventEntity) TimeSlotMarkerByDisplay(timeDisplay string) *TimeMarkerEntity {
-	var timeSlot *TimeMarkerEntity
-	for _, slot := range e.markers {
-		if slot.Time == timeDisplay {
+func (e *EventEntity) TimeSlotByID(id uuid.UUID) *TimeSlotEntity {
+	var timeSlot *TimeSlotEntity
+	for _, slot := range e.timeSlots {
+		if slot.ID == id {
 			timeSlot = slot
 			break
 		}
@@ -96,11 +97,13 @@ func (e *EventEntity) TimeSlotMarkerByDisplay(timeDisplay string) *TimeMarkerEnt
 	return timeSlot
 }
 
-func (e *EventEntity) TimeSlotMarkerByID(id uuid.UUID) *TimeMarkerEntity {
-	var timeSlot *TimeMarkerEntity
-	for _, slot := range e.markers {
+func (e *EventEntity) NextTimeSlotByID(id uuid.UUID) *TimeSlotEntity {
+	var timeSlot *TimeSlotEntity
+	for idx, slot := range e.timeSlots {
 		if slot.ID == id {
-			timeSlot = slot
+			if idx+1 < len(e.timeSlots) {
+				timeSlot = e.timeSlots[idx+1]
+			}
 			break
 		}
 	}
@@ -109,6 +112,36 @@ func (e *EventEntity) TimeSlotMarkerByID(id uuid.UUID) *TimeMarkerEntity {
 	}
 
 	return timeSlot
+}
+
+func (e *EventEntity) TimeSlotMarkerByDisplay(timeDisplay string) *TimeMarkerEntity {
+	var marker *TimeMarkerEntity
+	for _, slot := range e.markers {
+		if slot.Time == timeDisplay {
+			marker = slot
+			break
+		}
+	}
+	if marker == nil {
+		return nil
+	}
+
+	return marker
+}
+
+func (e *EventEntity) TimeSlotMarkerByID(id uuid.UUID) *TimeMarkerEntity {
+	var marker *TimeMarkerEntity
+	for _, slot := range e.markers {
+		if slot.ID == id {
+			marker = slot
+			break
+		}
+	}
+	if marker == nil {
+		return nil
+	}
+
+	return marker
 }
 
 func newTimeSlotEntity(timeSlotModel models.Timeslot, artistModel models.Artist, slotTime time.Time) *TimeSlotEntity {

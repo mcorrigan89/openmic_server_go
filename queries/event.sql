@@ -37,6 +37,11 @@ JOIN artist ON timeslot.artist_id = artist.id
 WHERE timeslot.event_id = sqlc.arg(event_id)
 ORDER BY timeslot.sort_key ASC;
 
+-- name: UpdateTimeSlot :many
+UPDATE timeslot
+SET artist_name_override = sqlc.arg(artist_name_override), sort_key = sqlc.arg(sort_key)
+WHERE id = sqlc.arg(id) RETURNING *;
+
 -- name: CreateTimeslotMarker :one
 INSERT INTO timeslot_marker (id, event_id, marker_type, marker_value, timeslot_index)
 VALUES (sqlc.arg(id), sqlc.arg(event_id), sqlc.arg(marker_type), sqlc.arg(marker_value), sqlc.arg(timeslot_index)) RETURNING *;

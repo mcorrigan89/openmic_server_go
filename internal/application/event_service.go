@@ -30,6 +30,7 @@ type EventApplicationService interface {
 	RemoveArtistFromEvent(ctx context.Context, cmd commands.RemoveArtistFromEventCommand) (*entities.EventEntity, error)
 	SetTimeslotMarker(ctx context.Context, cmd commands.SetTimeslotMarkerCommand) (*entities.EventEntity, error)
 	DeleteTimeslotMarker(ctx context.Context, cmd commands.DeleteTimeslotMarkerCommand) (*entities.EventEntity, error)
+	SetSortOrder(ctx context.Context, cmd commands.SetSortOrderCommand) (*entities.EventEntity, error)
 	MessageBus() *bus.MessageBus[*dto.EventDto]
 }
 
@@ -223,6 +224,55 @@ func (app *eventApplicationService) DeleteTimeslotMarker(ctx context.Context, cm
 	event, err := app.eventService.GetEventByID(ctx, app.queries, cmd.EventID)
 	if err != nil {
 		app.logger.Err(err).Ctx(ctx).Msg("Failed to get event by ID")
+		return nil, err
+	}
+
+	return event, nil
+}
+
+func (app *eventApplicationService) SetSortOrder(ctx context.Context, cmd commands.SetSortOrderCommand) (*entities.EventEntity, error) {
+	app.logger.Info().Ctx(ctx).Msg("Setting sort order")
+
+	event, err := app.eventService.GetEventByID(ctx, app.queries, cmd.EventID)
+	if err != nil {
+		app.logger.Err(err).Ctx(ctx).Msg("Failed to get event by ID")
+		return nil, err
+	}
+
+	currentSlot := event.TimeSlotByID(cmd.CurrentSlotID)
+	var beforeSlot, afterSlot *entities.TimeSlotEntity
+	var beforeSlotSortKey, afterSlotSortKey string
+	if currentSlot == nil {
+		return event, nil
+	}
+
+	if cmd.BeforeSlotID != nil {
+		beforeSlot = event.TimeSlotByID(*cmd.BeforeSlotID)
+		afterSlot = event.NextTimeSlotByID(*cmd.BeforeSlotID)
+	}
+
+	if beforeSlot != nil {
+		beforeSlotSortKey = beforeSlot.SortKey
+	} else {
+		beforeSlotSortKey = ""
+	}
+
+	if afterSlot != nil {
+		afterSlotSortKey = afterSlot.SortKey
+	} else {
+		afterSlotSortKey = ""
+	}
+
+	sortKey, err := common.KeyBetween(beforeSlotSortKey, afterSlotSortKey)
+	if err != nil {
+		return nil, err
+	}
+
+	currentSlot.SortKey = sortKey
+
+	err = app.eventService.UpdateTimeSlot(ctx, app.queries, currentSlot)
+	if err != nil {
+		app.logger.Err(err).Ctx(ctx).Msg("Failed to update timeslot")
 		return nil, err
 	}
 

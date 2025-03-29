@@ -130,9 +130,17 @@ func NewRouter(mux *http.ServeMux, middleware middleware.Middleware, userHandler
 		OperationID: "delete-timeslot",
 		Method:      http.MethodDelete,
 		Path:        "/event/{event_id}/timeslot",
-		Summary:     "Set Timeslot",
+		Summary:     "Delete Timeslot",
 		Tags:        []string{"Event"},
 	}, eventHandler.DeleteTimeslotMarker)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "set-sort-order",
+		Method:      http.MethodPut,
+		Path:        "/event/{event_id}/sort",
+		Summary:     "Set Sort Order",
+		Tags:        []string{"Event"},
+	}, eventHandler.SetSortOrderRequest)
 
 	sse.Register(api, huma.Operation{
 		OperationID: "sse",

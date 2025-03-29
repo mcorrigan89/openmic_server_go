@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/mcorrigan89/openmic/internal/common"
@@ -17,6 +16,7 @@ type EventService interface {
 	CreateEvent(ctx context.Context, querier models.Querier, event *entities.EventEntity) (*entities.EventEntity, error)
 	UpdateEvent(ctx context.Context, querier models.Querier, event *entities.EventEntity) (*entities.EventEntity, error)
 	DeleteEvent(ctx context.Context, querier models.Querier, eventID uuid.UUID) error
+	UpdateTimeSlot(ctx context.Context, querier models.Querier, timeslot *entities.TimeSlotEntity) error
 	AddArtistToEvent(ctx context.Context, querier models.Querier, eventID uuid.UUID, artistID uuid.UUID) error
 	RemoveArtistFromEvent(ctx context.Context, querier models.Querier, eventID uuid.UUID, artistID uuid.UUID) error
 	SetTimeslotMarker(ctx context.Context, querier models.Querier, eventID uuid.UUID, index int, timeslotDisplay string) error
@@ -76,6 +76,15 @@ func (s *eventService) DeleteEvent(ctx context.Context, querier models.Querier, 
 	return nil
 }
 
+func (s *eventService) UpdateTimeSlot(ctx context.Context, querier models.Querier, timeslot *entities.TimeSlotEntity) error {
+	err := s.eventRepo.UpdateTimeSlot(ctx, querier, timeslot)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (s *eventService) AddArtistToEvent(ctx context.Context, querier models.Querier, eventID uuid.UUID, artistID uuid.UUID) error {
 
 	event, err := s.eventRepo.GetEventByID(ctx, querier, eventID)
@@ -123,7 +132,6 @@ func (s *eventService) SetTimeslotMarker(ctx context.Context, querier models.Que
 	}
 
 	markerEntity := event.TimeSlotMarkerByDisplay(timeslotDisplay)
-	fmt.Println(markerEntity)
 	if markerEntity != nil {
 		markerEntity.Index = index
 		err = s.eventRepo.UpdateTimeslotMarker(ctx, querier, markerEntity)

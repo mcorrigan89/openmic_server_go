@@ -288,6 +288,48 @@ func (q *Queries) UpdateEvent(ctx context.Context, arg UpdateEventParams) (Event
 	return i, err
 }
 
+const updateTimeSlot = `-- name: UpdateTimeSlot :many
+UPDATE timeslot
+SET artist_name_override = $1, sort_key = $2
+WHERE id = $3 RETURNING id, event_id, artist_id, artist_name_override, song_count, sort_key, created_at, updated_at, version
+`
+
+type UpdateTimeSlotParams struct {
+	ArtistNameOverride *string   `json:"artist_name_override"`
+	SortKey            string    `json:"sort_key"`
+	ID                 uuid.UUID `json:"id"`
+}
+
+func (q *Queries) UpdateTimeSlot(ctx context.Context, arg UpdateTimeSlotParams) ([]Timeslot, error) {
+	rows, err := q.db.Query(ctx, updateTimeSlot, arg.ArtistNameOverride, arg.SortKey, arg.ID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Timeslot{}
+	for rows.Next() {
+		var i Timeslot
+		if err := rows.Scan(
+			&i.ID,
+			&i.EventID,
+			&i.ArtistID,
+			&i.ArtistNameOverride,
+			&i.SongCount,
+			&i.SortKey,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Version,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateTimeslotMarker = `-- name: UpdateTimeslotMarker :one
 UPDATE timeslot_marker
 SET marker_type = $1, marker_value = $2, timeslot_index = $3

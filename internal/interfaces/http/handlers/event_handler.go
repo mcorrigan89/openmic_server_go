@@ -228,6 +228,26 @@ func (h *EventHandler) DeleteTimeslotMarker(ctx context.Context, input *dto.Dele
 	}, nil
 }
 
+func (h *EventHandler) SetSortOrderRequest(ctx context.Context, input *dto.SetSortOrderRequest) (*dto.SetSortOrderResponse, error) {
+
+	cmd := commands.SetSortOrderCommand{
+		EventID:       input.EventID,
+		BeforeSlotID:  input.Body.BeforeSlotID,
+		CurrentSlotID: input.Body.CurrentSlotID,
+	}
+
+	event, err := h.eventAppService.SetSortOrder(ctx, cmd)
+	if err != nil {
+		return nil, huma.Error500InternalServerError("Failed to set sort order", err)
+	}
+
+	eventDto := dto.NewEventDtoFromEntity(event)
+
+	return &dto.SetSortOrderResponse{
+		Body: eventDto,
+	}, nil
+}
+
 func (h *EventHandler) ListenForEventChange(ctx context.Context, input *struct {
 	ID uuid.UUID `path:"event_id"`
 }, send sse.Sender) {

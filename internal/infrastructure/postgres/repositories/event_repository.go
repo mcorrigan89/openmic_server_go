@@ -3,7 +3,6 @@ package repositories
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/mcorrigan89/openmic/internal/domain/entities"
@@ -21,8 +20,6 @@ func NewPostgresEventRepository() *postgresEventRepository {
 func (repo *postgresEventRepository) GetEventByID(ctx context.Context, querier models.Querier, eventID uuid.UUID) (*entities.EventEntity, error) {
 	ctx, cancel := context.WithTimeout(ctx, postgres.DefaultTimeout)
 	defer cancel()
-
-	fmt.Println("eventID: ", eventID)
 
 	row, err := querier.GetEventByID(ctx, eventID)
 	if err != nil {
@@ -107,6 +104,22 @@ func (repo *postgresEventRepository) DeleteEvent(ctx context.Context, querier mo
 	defer cancel()
 
 	err := querier.DeleteEvent(ctx, eventID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (repo *postgresEventRepository) UpdateTimeSlot(ctx context.Context, querier models.Querier, timeslot *entities.TimeSlotEntity) error {
+	ctx, cancel := context.WithTimeout(ctx, postgres.DefaultTimeout)
+	defer cancel()
+
+	_, err := querier.UpdateTimeSlot(ctx, models.UpdateTimeSlotParams{
+		ID:                 timeslot.ID,
+		ArtistNameOverride: timeslot.NameOverride,
+		SortKey:            timeslot.SortKey,
+	})
 	if err != nil {
 		return err
 	}

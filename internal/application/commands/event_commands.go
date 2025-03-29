@@ -62,3 +62,9 @@ type DeleteTimeslotMarkerCommand struct {
 	EventID      uuid.UUID
 	SlotMarkerID uuid.UUID
 }
+
+type SetSortOrderCommand struct {
+	EventID       uuid.UUID
+	BeforeSlotID  *uuid.UUID
+	CurrentSlotID uuid.UUID
+}

@@ -40,6 +40,7 @@ type Querier interface {
 	TimeSlotsByEventID(ctx context.Context, eventID uuid.UUID) ([]TimeSlotsByEventIDRow, error)
 	UpdateArtist(ctx context.Context, arg UpdateArtistParams) (Artist, error)
 	UpdateEvent(ctx context.Context, arg UpdateEventParams) (Event, error)
+	UpdateTimeSlot(ctx context.Context, arg UpdateTimeSlotParams) ([]Timeslot, error)
 	UpdateTimeslotMarker(ctx context.Context, arg UpdateTimeslotMarkerParams) (TimeslotMarker, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 }

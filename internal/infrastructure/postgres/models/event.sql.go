@@ -121,7 +121,7 @@ func (q *Queries) DeleteTimeslotMarker(ctx context.Context, id uuid.UUID) error 
 }
 
 const getAllEvents = `-- name: GetAllEvents :many
-SELECT event.id, event.event_type, event.start_time, event.end_time, event.created_at, event.updated_at, event.version,  json_agg(timeslot_marker.*) FROM event
+SELECT event.id, event.event_type, event.start_time, event.end_time, event.created_at, event.updated_at, event.version, COALESCE(json_agg(timeslot_marker.*) FILTER (WHERE timeslot_marker.event_id IS NOT NULL), '[]')::json as markers FROM event
 LEFT JOIN timeslot_marker ON event.id = timeslot_marker.event_id
 GROUP BY event.id
 ORDER BY event.start_time ASC
@@ -129,7 +129,7 @@ ORDER BY event.start_time ASC
 
 type GetAllEventsRow struct {
 	Event   Event  `json:"event"`
-	JsonAgg []byte `json:"json_agg"`
+	Markers []byte `json:"markers"`
 }
 
 func (q *Queries) GetAllEvents(ctx context.Context) ([]GetAllEventsRow, error) {
@@ -149,7 +149,7 @@ func (q *Queries) GetAllEvents(ctx context.Context) ([]GetAllEventsRow, error) {
 			&i.Event.CreatedAt,
 			&i.Event.UpdatedAt,
 			&i.Event.Version,
-			&i.JsonAgg,
+			&i.Markers,
 		); err != nil {
 			return nil, err
 		}
@@ -162,7 +162,7 @@ func (q *Queries) GetAllEvents(ctx context.Context) ([]GetAllEventsRow, error) {
 }
 
 const getEventByID = `-- name: GetEventByID :one
-SELECT event.id, event.event_type, event.start_time, event.end_time, event.created_at, event.updated_at, event.version, json_agg(timeslot_marker.*) as markers FROM event
+SELECT event.id, event.event_type, event.start_time, event.end_time, event.created_at, event.updated_at, event.version, COALESCE(json_agg(timeslot_marker.*) FILTER (WHERE timeslot_marker.event_id IS NOT NULL), '[]')::json as markers FROM event
 LEFT JOIN timeslot_marker ON event.id = timeslot_marker.event_id
 WHERE event.id = $1
 GROUP BY event.id

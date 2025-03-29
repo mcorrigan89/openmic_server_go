@@ -51,7 +51,7 @@ func main() {
 
 	postgresUserRepository := repositories.NewPostgresUserRepository()
 	postgresArtistRepositoy := repositories.NewPostgresArtistRepository()
-	postgresEventRepositoy := repositories.NewPostgresEventRepository()
+	postgresEventRepositoy := repositories.NewPostgresEventRepository(&logger)
 	postgresReferenceLinkRepository := repositories.NewPostgresReferenceLinkRepository()
 	postgresImageRepository := repositories.NewPostgresImageRepository()
 	blobStorageService := storage.NewBlobStorageService(&cfg)

@@ -1,5 +1,5 @@
 -- name: GetEventByID :one
-SELECT sqlc.embed(event), json_agg(timeslot_marker.*) as markers FROM event
+SELECT sqlc.embed(event), COALESCE(json_agg(timeslot_marker.*) FILTER (WHERE timeslot_marker.event_id IS NOT NULL), '[]')::json as markers FROM event
 LEFT JOIN timeslot_marker ON event.id = timeslot_marker.event_id
 WHERE event.id = sqlc.arg(id)
 GROUP BY event.id;
@@ -18,7 +18,7 @@ DELETE FROM event
 WHERE id = sqlc.arg(id);
 
 -- name: GetAllEvents :many
-SELECT sqlc.embed(event),  json_agg(timeslot_marker.*) FROM event
+SELECT sqlc.embed(event), COALESCE(json_agg(timeslot_marker.*) FILTER (WHERE timeslot_marker.event_id IS NOT NULL), '[]')::json as markers FROM event
 LEFT JOIN timeslot_marker ON event.id = timeslot_marker.event_id
 GROUP BY event.id
 ORDER BY event.start_time ASC;

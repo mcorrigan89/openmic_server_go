@@ -70,6 +70,8 @@ func (app *eventApplicationService) GetEventByID(ctx context.Context, query quer
 		return nil, err
 	}
 
+	app.logger.Info().Ctx(ctx).Msg("Got event by ID")
+
 	return event, nil
 }
 

@@ -8,13 +8,17 @@ import (
 	"github.com/mcorrigan89/openmic/internal/domain/entities"
 	"github.com/mcorrigan89/openmic/internal/infrastructure/postgres"
 	"github.com/mcorrigan89/openmic/internal/infrastructure/postgres/models"
+	"github.com/rs/zerolog"
 )
 
 type postgresEventRepository struct {
+	logger *zerolog.Logger
 }
 
-func NewPostgresEventRepository() *postgresEventRepository {
-	return &postgresEventRepository{}
+func NewPostgresEventRepository(logger *zerolog.Logger) *postgresEventRepository {
+	return &postgresEventRepository{
+		logger: logger,
+	}
 }
 
 func (repo *postgresEventRepository) GetEventByID(ctx context.Context, querier models.Querier, eventID uuid.UUID) (*entities.EventEntity, error) {
@@ -23,19 +27,23 @@ func (repo *postgresEventRepository) GetEventByID(ctx context.Context, querier m
 
 	row, err := querier.GetEventByID(ctx, eventID)
 	if err != nil {
+		repo.logger.Err(err).Ctx(ctx).Msg("Failed to get event by ID")
 		return nil, err
 	}
 
-	var markerModels []*models.TimeslotMarker
+	markerModels := make([]*models.TimeslotMarker, 0)
+
 	if row.Markers != nil {
 		err = json.Unmarshal(row.Markers, &markerModels)
 		if err != nil {
+			repo.logger.Err(err).Ctx(ctx).Msg("Failed to unmarshal markers")
 			return nil, err
 		}
 	}
 
 	timeslotRows, err := querier.TimeSlotsByEventID(ctx, eventID)
 	if err != nil {
+		repo.logger.Err(err).Ctx(ctx).Msg("Failed to get timeslots by event ID")
 		return nil, err
 	}
 

@@ -97,6 +97,23 @@ func (e *EventEntity) TimeSlotByID(id uuid.UUID) *TimeSlotEntity {
 	return timeSlot
 }
 
+func (e *EventEntity) PreviousTimeSlotByID(id uuid.UUID) *TimeSlotEntity {
+	var timeSlot *TimeSlotEntity
+	for idx, slot := range e.timeSlots {
+		if slot.ID == id {
+			if idx > 0 && e.timeSlots[idx-1] != nil {
+				timeSlot = e.timeSlots[idx-1]
+			}
+			break
+		}
+	}
+	if timeSlot == nil {
+		return nil
+	}
+
+	return timeSlot
+}
+
 func (e *EventEntity) NextTimeSlotByID(id uuid.UUID) *TimeSlotEntity {
 	var timeSlot *TimeSlotEntity
 	for idx, slot := range e.timeSlots {

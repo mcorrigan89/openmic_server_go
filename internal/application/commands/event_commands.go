@@ -67,4 +67,5 @@ type SetSortOrderCommand struct {
 	EventID       uuid.UUID
 	BeforeSlotID  *uuid.UUID
 	CurrentSlotID uuid.UUID
+	AfterSlotID   *uuid.UUID
 }

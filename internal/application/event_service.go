@@ -253,6 +253,11 @@ func (app *eventApplicationService) SetSortOrder(ctx context.Context, cmd comman
 		afterSlot = event.NextTimeSlotByID(*cmd.BeforeSlotID)
 	}
 
+	if cmd.AfterSlotID != nil {
+		afterSlot = event.TimeSlotByID(*cmd.AfterSlotID)
+		beforeSlot = event.PreviousTimeSlotByID(*cmd.AfterSlotID)
+	}
+
 	if beforeSlot != nil {
 		beforeSlotSortKey = beforeSlot.SortKey
 	} else {
@@ -267,6 +272,7 @@ func (app *eventApplicationService) SetSortOrder(ctx context.Context, cmd comman
 
 	sortKey, err := common.KeyBetween(beforeSlotSortKey, afterSlotSortKey)
 	if err != nil {
+		app.logger.Err(err).Ctx(ctx).Msg("Failed to generate sort key")
 		return nil, err
 	}
 

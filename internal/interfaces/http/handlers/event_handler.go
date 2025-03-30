@@ -234,6 +234,7 @@ func (h *EventHandler) SetSortOrderRequest(ctx context.Context, input *dto.SetSo
 		EventID:       input.EventID,
 		BeforeSlotID:  input.Body.BeforeSlotID,
 		CurrentSlotID: input.Body.CurrentSlotID,
+		AfterSlotID:   input.Body.AfterSlotID,
 	}
 
 	event, err := h.eventAppService.SetSortOrder(ctx, cmd)

@@ -149,8 +149,9 @@ type SetTimeslotMarkerResponse struct {
 type SetSortOrderRequest struct {
 	EventID uuid.UUID `path:"event_id"`
 	Body    struct {
-		BeforeSlotID  *uuid.UUID `json:"before_slot_id"`
+		BeforeSlotID  *uuid.UUID `json:"before_slot_id,omitempty"`
 		CurrentSlotID uuid.UUID  `json:"current_slot_id"`
+		AfterSlotID   *uuid.UUID `json:"after_slot_id,omitempty"`
 	}
 }
 

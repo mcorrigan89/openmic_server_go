@@ -104,3 +104,38 @@ func (h *ArtistHandler) CreateArtist(ctx context.Context, input *dto.CreateArtis
 		Body: artistDto,
 	}, nil
 }
+
+func (h *ArtistHandler) UpdateArtist(ctx context.Context, input *dto.UpdateArtistRequest) (*dto.UpdateArtistResponse, error) {
+
+	cmd := commands.UpdateArtistCommand{
+		ID:       input.ID,
+		Title:    input.Body.Title,
+		SubTitle: input.Body.SubTitle,
+		Bio:      input.Body.Bio,
+	}
+
+	artist, err := h.artistAppService.UpdateArtist(ctx, cmd)
+	if err != nil {
+		return nil, huma.Error500InternalServerError("Failed to update artist", err)
+	}
+
+	artistDto := dto.NewArtistDtoFromEntity(artist)
+
+	return &dto.UpdateArtistResponse{
+		Body: artistDto,
+	}, nil
+}
+
+func (h *ArtistHandler) DeleteArtist(ctx context.Context, input *dto.DeleteArtistRequest) (*dto.DeleteArtistResponse, error) {
+
+	cmd := commands.DeleteArtistCommand{
+		ID: input.ID,
+	}
+
+	err := h.artistAppService.DeleteArtist(ctx, cmd)
+	if err != nil {
+		return nil, huma.Error500InternalServerError("Failed to delete artist", err)
+	}
+
+	return &dto.DeleteArtistResponse{}, nil
+}

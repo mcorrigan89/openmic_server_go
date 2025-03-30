@@ -20,6 +20,8 @@ type ArtistApplicationService interface {
 	GetArtistsByTitle(ctx context.Context, query queries.ArtistsByTitleQuery) ([]*entities.ArtistEntity, error)
 	GetAllArtists(ctx context.Context) ([]*entities.ArtistEntity, error)
 	CreateArtist(ctx context.Context, cmd commands.CreateNewArtistCommand) (*entities.ArtistEntity, error)
+	UpdateArtist(ctx context.Context, cmd commands.UpdateArtistCommand) (*entities.ArtistEntity, error)
+	DeleteArtist(ctx context.Context, cmd commands.DeleteArtistCommand) error
 }
 
 type artistApplicationService struct {
@@ -91,4 +93,30 @@ func (app *artistApplicationService) CreateArtist(ctx context.Context, cmd comma
 	}
 
 	return artist, nil
+}
+
+func (app *artistApplicationService) UpdateArtist(ctx context.Context, cmd commands.UpdateArtistCommand) (*entities.ArtistEntity, error) {
+	app.logger.Info().Ctx(ctx).Msg("Updating artist")
+
+	artistEntity := cmd.ToDomain()
+
+	artist, err := app.artistService.UpdateArtist(ctx, app.queries, artistEntity)
+	if err != nil {
+		app.logger.Err(err).Ctx(ctx).Msg("Failed to update artist")
+		return nil, err
+	}
+
+	return artist, nil
+}
+
+func (app *artistApplicationService) DeleteArtist(ctx context.Context, query commands.DeleteArtistCommand) error {
+	app.logger.Info().Ctx(ctx).Msg("Deleting artist")
+
+	err := app.artistService.DeleteArtist(ctx, app.queries, query.ID)
+	if err != nil {
+		app.logger.Err(err).Ctx(ctx).Msg("Failed to delete artist")
+		return err
+	}
+
+	return nil
 }

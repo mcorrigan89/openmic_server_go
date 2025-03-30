@@ -15,6 +15,8 @@ type ArtistService interface {
 	GetArtistsByTitle(ctx context.Context, querier models.Querier, title string) ([]*entities.ArtistEntity, error)
 	GetAllArtists(ctx context.Context, querier models.Querier) ([]*entities.ArtistEntity, error)
 	CreateArtist(ctx context.Context, querier models.Querier, artist *entities.ArtistEntity) (*entities.ArtistEntity, error)
+	UpdateArtist(ctx context.Context, querier models.Querier, artist *entities.ArtistEntity) (*entities.ArtistEntity, error)
+	DeleteArtist(ctx context.Context, querier models.Querier, artistID uuid.UUID) error
 }
 
 type artistService struct {
@@ -64,4 +66,24 @@ func (s *artistService) CreateArtist(ctx context.Context, querier models.Querier
 	}
 
 	return createdArtist, nil
+}
+
+func (s *artistService) UpdateArtist(ctx context.Context, querier models.Querier, artist *entities.ArtistEntity) (*entities.ArtistEntity, error) {
+	updatedArtist, err := s.artistRepo.UpdateArtist(ctx, querier, artist)
+	if err != nil {
+		s.logger.Err(err).Ctx(ctx).Msg("Failed to update artist")
+		return nil, err
+	}
+
+	return updatedArtist, nil
+}
+
+func (s *artistService) DeleteArtist(ctx context.Context, querier models.Querier, artistID uuid.UUID) error {
+	err := s.artistRepo.DeleteArtist(ctx, querier, artistID)
+	if err != nil {
+		s.logger.Err(err).Ctx(ctx).Msg("Failed to delete artist")
+		return err
+	}
+
+	return nil
 }

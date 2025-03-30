@@ -186,5 +186,21 @@ func NewRouter(mux *http.ServeMux, middleware middleware.Middleware, userHandler
 		Tags:        []string{"Artist"},
 	}, artistHandler.CreateArtist)
 
+	huma.Register(api, huma.Operation{
+		OperationID: "update-artist",
+		Method:      http.MethodPut,
+		Path:        "/artist/{id}",
+		Summary:     "Update Artist",
+		Tags:        []string{"Artist"},
+	}, artistHandler.UpdateArtist)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "delete-artist",
+		Method:      http.MethodDelete,
+		Path:        "/artist/{id}",
+		Summary:     "Delete Artist",
+		Tags:        []string{"Artist"},
+	}, artistHandler.DeleteArtist)
+
 	return middleware.RecoverPanic(middleware.EnabledCORS(middleware.ContextBuilder(mux)))
 }

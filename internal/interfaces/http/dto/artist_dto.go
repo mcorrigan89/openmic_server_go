@@ -44,3 +44,24 @@ type CreateArtistRequest struct {
 type CreateArtistResponse struct {
 	Body *ArtistDto `json:"body"`
 }
+
+type UpdateArtistRequest struct {
+	ID   uuid.UUID `path:"id"`
+	Body struct {
+		Title    string  `json:"title"`
+		SubTitle *string `json:"sub_title"`
+		Bio      *string `json:"bio"`
+	}
+}
+
+type UpdateArtistResponse struct {
+	Body *ArtistDto `json:"body"`
+}
+
+type DeleteArtistRequest struct {
+	ID uuid.UUID `path:"id"`
+}
+
+type DeleteArtistResponse struct {
+	Body *ArtistDto `json:"body"`
+}

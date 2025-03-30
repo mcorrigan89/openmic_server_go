@@ -81,3 +81,32 @@ func (repo *postgresArtistRepository) CreateArtist(ctx context.Context, querier 
 
 	return entities.NewArtistEntity(row), nil
 }
+
+func (repo *postgresArtistRepository) UpdateArtist(ctx context.Context, querier models.Querier, artist *entities.ArtistEntity) (*entities.ArtistEntity, error) {
+	ctx, cancel := context.WithTimeout(ctx, postgres.DefaultTimeout)
+	defer cancel()
+
+	row, err := querier.UpdateArtist(ctx, models.UpdateArtistParams{
+		ID:             artist.ID,
+		ArtistTitle:    artist.Title,
+		ArtistSubtitle: artist.SubTitle,
+		Bio:            artist.Bio,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return entities.NewArtistEntity(row), nil
+}
+
+func (repo *postgresArtistRepository) DeleteArtist(ctx context.Context, querier models.Querier, artistID uuid.UUID) error {
+	ctx, cancel := context.WithTimeout(ctx, postgres.DefaultTimeout)
+	defer cancel()
+
+	err := querier.DeleteArtist(ctx, artistID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -13,4 +13,6 @@ type ArtistRepository interface {
 	GetArtistsByTitle(ctx context.Context, querier models.Querier, title string) ([]*entities.ArtistEntity, error)
 	GetAllArtists(ctx context.Context, querier models.Querier) ([]*entities.ArtistEntity, error)
 	CreateArtist(ctx context.Context, querier models.Querier, artist *entities.ArtistEntity) (*entities.ArtistEntity, error)
+	UpdateArtist(ctx context.Context, querier models.Querier, artist *entities.ArtistEntity) (*entities.ArtistEntity, error)
+	DeleteArtist(ctx context.Context, querier models.Querier, id uuid.UUID) error
 }

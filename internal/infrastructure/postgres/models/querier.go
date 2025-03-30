@@ -19,6 +19,7 @@ type Querier interface {
 	CreateTimeslotMarker(ctx context.Context, arg CreateTimeslotMarkerParams) (TimeslotMarker, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	CreateUserSession(ctx context.Context, arg CreateUserSessionParams) (UserSession, error)
+	DeleteArtist(ctx context.Context, id uuid.UUID) error
 	DeleteEvent(ctx context.Context, id uuid.UUID) error
 	DeleteReferenceLink(ctx context.Context, id uuid.UUID) (ReferenceLink, error)
 	DeleteTimeslotMarker(ctx context.Context, id uuid.UUID) error

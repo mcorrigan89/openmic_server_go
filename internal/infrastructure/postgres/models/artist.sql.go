@@ -47,6 +47,16 @@ func (q *Queries) CreateArtist(ctx context.Context, arg CreateArtistParams) (Art
 	return i, err
 }
 
+const deleteArtist = `-- name: DeleteArtist :exec
+DELETE FROM artist
+WHERE id = $1
+`
+
+func (q *Queries) DeleteArtist(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteArtist, id)
+	return err
+}
+
 const getAllArtists = `-- name: GetAllArtists :many
 SELECT artist.id, artist.artist_title, artist.artist_subtitle, artist.bio, artist.avatar_id, artist.user_id, artist.created_at, artist.updated_at, artist.version FROM artist
 ORDER BY artist.artist_title ASC

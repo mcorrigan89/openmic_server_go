@@ -19,3 +19,7 @@ VALUES ($1, $2, $3, $4, $5) RETURNING *;
 UPDATE artist
 SET artist_title = $2, artist_subtitle = $3, bio = $4, avatar_id = $5
 WHERE id = $1 RETURNING *;
+
+-- name: DeleteArtist :exec
+DELETE FROM artist
+WHERE id = $1;

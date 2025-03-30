@@ -19,3 +19,23 @@ func (c *CreateNewArtistCommand) ToDomain() *entities.ArtistEntity {
 		Bio:      c.Bio,
 	}
 }
+
+type UpdateArtistCommand struct {
+	ID       uuid.UUID
+	Title    string
+	SubTitle *string
+	Bio      *string
+}
+
+func (c *UpdateArtistCommand) ToDomain() *entities.ArtistEntity {
+	return &entities.ArtistEntity{
+		ID:       c.ID,
+		Title:    c.Title,
+		SubTitle: c.SubTitle,
+		Bio:      c.Bio,
+	}
+}
+
+type DeleteArtistCommand struct {
+	ID uuid.UUID
+}

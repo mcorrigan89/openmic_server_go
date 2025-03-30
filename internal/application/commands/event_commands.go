@@ -69,3 +69,8 @@ type SetSortOrderCommand struct {
 	CurrentSlotID uuid.UUID
 	AfterSlotID   *uuid.UUID
 }
+
+type SetNowPlayingCommand struct {
+	EventID uuid.UUID
+	Index   int
+}

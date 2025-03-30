@@ -146,6 +146,21 @@ func (e *EventEntity) TimeSlotMarkerByDisplay(timeDisplay string) *TimeMarkerEnt
 	return marker
 }
 
+func (e *EventEntity) NowPlayingTimeSlotMarker() *TimeMarkerEntity {
+	var marker *TimeMarkerEntity
+	for _, slot := range e.markers {
+		if slot.Type == "PLAYING" {
+			marker = slot
+			break
+		}
+	}
+	if marker == nil {
+		return nil
+	}
+
+	return marker
+}
+
 func (e *EventEntity) TimeSlotMarkerByID(id uuid.UUID) *TimeMarkerEntity {
 	var marker *TimeMarkerEntity
 	for _, slot := range e.markers {

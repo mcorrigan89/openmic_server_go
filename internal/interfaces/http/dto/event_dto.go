@@ -172,3 +172,14 @@ type UpdateTimeSlotRequest struct {
 type UpdateTimeSlotResponse struct {
 	Body *EventDto `json:"body"`
 }
+
+type SetNowPlayingRequest struct {
+	EventID uuid.UUID `path:"event_id"`
+	Body    struct {
+		Index int `json:"index"`
+	}
+}
+
+type SetNowPlayingResponse struct {
+	Body *EventDto `json:"body"`
+}

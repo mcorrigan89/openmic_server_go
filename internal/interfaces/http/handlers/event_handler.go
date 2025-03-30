@@ -269,6 +269,24 @@ func (h *EventHandler) UpdateTimeSlot(ctx context.Context, input *dto.UpdateTime
 	}, nil
 }
 
+func (h *EventHandler) SetNowPlaying(ctx context.Context, input *dto.SetNowPlayingRequest) (*dto.SetNowPlayingResponse, error) {
+	cmd := commands.SetNowPlayingCommand{
+		EventID: input.EventID,
+		Index:   input.Body.Index,
+	}
+
+	event, err := h.eventAppService.SetNowPlaying(ctx, cmd)
+	if err != nil {
+		return nil, huma.Error500InternalServerError("Failed to set now playing", err)
+	}
+
+	eventDto := dto.NewEventDtoFromEntity(event)
+
+	return &dto.SetNowPlayingResponse{
+		Body: eventDto,
+	}, nil
+}
+
 func (h *EventHandler) ListenForEventChange(ctx context.Context, input *struct {
 	ID uuid.UUID `path:"event_id"`
 }, send sse.Sender) {

@@ -150,6 +150,14 @@ func NewRouter(mux *http.ServeMux, middleware middleware.Middleware, userHandler
 		Tags:        []string{"Event"},
 	}, eventHandler.UpdateTimeSlot)
 
+	huma.Register(api, huma.Operation{
+		OperationID: "set-now-playing",
+		Method:      http.MethodPut,
+		Path:        "/event/{event_id}/now-playing",
+		Summary:     "Set Now Playing",
+		Tags:        []string{"Event"},
+	}, eventHandler.SetNowPlaying)
+
 	sse.Register(api, huma.Operation{
 		OperationID: "sse",
 		Method:      http.MethodGet,

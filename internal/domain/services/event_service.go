@@ -22,6 +22,7 @@ type EventService interface {
 	RemoveArtistFromEvent(ctx context.Context, querier models.Querier, eventID uuid.UUID, artistID uuid.UUID) error
 	SetTimeslotMarker(ctx context.Context, querier models.Querier, eventID uuid.UUID, index int, timeslotDisplay string) error
 	DeleteTimeslotMarker(ctx context.Context, querier models.Querier, eventID uuid.UUID, timeslotMarkerID uuid.UUID) error
+	SetNowPlaying(ctx context.Context, querier models.Querier, eventID uuid.UUID, index int) error
 }
 
 type eventService struct {
@@ -185,5 +186,37 @@ func (s *eventService) DeleteTimeslotMarker(ctx context.Context, querier models.
 			return err
 		}
 	}
+	return nil
+}
+
+func (s *eventService) SetNowPlaying(ctx context.Context, querier models.Querier, eventID uuid.UUID, index int) error {
+	event, err := s.eventRepo.GetEventByID(ctx, querier, eventID)
+	if err != nil {
+		s.logger.Err(err).Ctx(ctx).Msg("Failed to get event by ID")
+		return err
+	}
+
+	markerEntity := event.NowPlayingTimeSlotMarker()
+	if markerEntity != nil {
+		markerEntity.Index = index
+		err = s.eventRepo.UpdateTimeslotMarker(ctx, querier, markerEntity)
+		if err != nil {
+			s.logger.Err(err).Ctx(ctx).Msg("Failed to update timeslot marker")
+			return err
+		}
+	} else {
+		newMarker := entities.TimeMarkerEntity{
+			ID:    uuid.New(),
+			Time:  "Playing",
+			Index: index,
+			Type:  "TIME",
+		}
+		err = s.eventRepo.CreateTimeslotMarker(ctx, querier, eventID, &newMarker)
+		if err != nil {
+			s.logger.Err(err).Ctx(ctx).Msg("Failed to create timeslot marker")
+			return err
+		}
+	}
+
 	return nil
 }

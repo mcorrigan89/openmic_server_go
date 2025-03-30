@@ -15,9 +15,10 @@ type TimeslotDto struct {
 }
 
 type TimesMarkerDto struct {
-	ID          uuid.UUID `json:"id"`
-	TimeDisplay string    `json:"time_display"`
-	SlotIndex   int       `json:"slot_index"`
+	ID        uuid.UUID `json:"id"`
+	Display   string    `json:"display"`
+	Type      string    `json:"type"`
+	SlotIndex int       `json:"slot_index"`
 }
 
 type EventDto struct {
@@ -44,9 +45,10 @@ func NewEventDtoFromEntity(entity *entities.EventEntity) *EventDto {
 	timeMarkerDtos := make([]*TimesMarkerDto, 0)
 	for _, marker := range entity.TimeMarkers() {
 		timeMarkerDtos = append(timeMarkerDtos, &TimesMarkerDto{
-			ID:          marker.ID,
-			TimeDisplay: marker.Time,
-			SlotIndex:   marker.Index,
+			ID:        marker.ID,
+			Display:   marker.Time,
+			Type:      marker.Type,
+			SlotIndex: marker.Index,
 		})
 	}
 
@@ -156,5 +158,17 @@ type SetSortOrderRequest struct {
 }
 
 type SetSortOrderResponse struct {
+	Body *EventDto `json:"body"`
+}
+
+type UpdateTimeSlotRequest struct {
+	EventID    uuid.UUID `path:"event_id"`
+	TimeSlotID uuid.UUID `path:"timeslot_id"`
+	Body       struct {
+		SongCount int32 `json:"song_count"`
+	}
+}
+
+type UpdateTimeSlotResponse struct {
 	Body *EventDto `json:"body"`
 }

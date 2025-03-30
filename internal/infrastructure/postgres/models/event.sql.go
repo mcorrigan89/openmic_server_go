@@ -290,18 +290,24 @@ func (q *Queries) UpdateEvent(ctx context.Context, arg UpdateEventParams) (Event
 
 const updateTimeSlot = `-- name: UpdateTimeSlot :many
 UPDATE timeslot
-SET artist_name_override = $1, sort_key = $2
-WHERE id = $3 RETURNING id, event_id, artist_id, artist_name_override, song_count, sort_key, created_at, updated_at, version
+SET artist_name_override = $1, sort_key = $2, song_count = $3
+WHERE id = $4 RETURNING id, event_id, artist_id, artist_name_override, song_count, sort_key, created_at, updated_at, version
 `
 
 type UpdateTimeSlotParams struct {
 	ArtistNameOverride *string   `json:"artist_name_override"`
 	SortKey            string    `json:"sort_key"`
+	SongCount          int32     `json:"song_count"`
 	ID                 uuid.UUID `json:"id"`
 }
 
 func (q *Queries) UpdateTimeSlot(ctx context.Context, arg UpdateTimeSlotParams) ([]Timeslot, error) {
-	rows, err := q.db.Query(ctx, updateTimeSlot, arg.ArtistNameOverride, arg.SortKey, arg.ID)
+	rows, err := q.db.Query(ctx, updateTimeSlot,
+		arg.ArtistNameOverride,
+		arg.SortKey,
+		arg.SongCount,
+		arg.ID,
+	)
 	if err != nil {
 		return nil, err
 	}

@@ -121,7 +121,7 @@ func NewRouter(mux *http.ServeMux, middleware middleware.Middleware, userHandler
 	huma.Register(api, huma.Operation{
 		OperationID: "set-timeslot",
 		Method:      http.MethodPost,
-		Path:        "/event/{event_id}/timeslot",
+		Path:        "/event/{event_id}/timeslot/marker",
 		Summary:     "Set Timeslot",
 		Tags:        []string{"Event"},
 	}, eventHandler.SetTimeslotMarker)
@@ -129,7 +129,7 @@ func NewRouter(mux *http.ServeMux, middleware middleware.Middleware, userHandler
 	huma.Register(api, huma.Operation{
 		OperationID: "delete-timeslot",
 		Method:      http.MethodDelete,
-		Path:        "/event/{event_id}/timeslot",
+		Path:        "/event/{event_id}/timeslot/marker",
 		Summary:     "Delete Timeslot",
 		Tags:        []string{"Event"},
 	}, eventHandler.DeleteTimeslotMarker)
@@ -141,6 +141,14 @@ func NewRouter(mux *http.ServeMux, middleware middleware.Middleware, userHandler
 		Summary:     "Set Sort Order",
 		Tags:        []string{"Event"},
 	}, eventHandler.SetSortOrderRequest)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "update-timeslot",
+		Method:      http.MethodPut,
+		Path:        "/event/{event_id}/timeslot/{timeslot_id}",
+		Summary:     "Update Timeslot",
+		Tags:        []string{"Event"},
+	}, eventHandler.UpdateTimeSlot)
 
 	sse.Register(api, huma.Operation{
 		OperationID: "sse",

@@ -31,6 +31,7 @@ type EventApplicationService interface {
 	SetTimeslotMarker(ctx context.Context, cmd commands.SetTimeslotMarkerCommand) (*entities.EventEntity, error)
 	DeleteTimeslotMarker(ctx context.Context, cmd commands.DeleteTimeslotMarkerCommand) (*entities.EventEntity, error)
 	SetSortOrder(ctx context.Context, cmd commands.SetSortOrderCommand) (*entities.EventEntity, error)
+	UpdateTimeSlot(ctx context.Context, cmd commands.UpdateTimeSlotCommand) (*entities.EventEntity, error)
 	MessageBus() *bus.MessageBus[*dto.EventDto]
 }
 
@@ -279,6 +280,31 @@ func (app *eventApplicationService) SetSortOrder(ctx context.Context, cmd comman
 	currentSlot.SortKey = sortKey
 
 	err = app.eventService.UpdateTimeSlot(ctx, app.queries, currentSlot)
+	if err != nil {
+		app.logger.Err(err).Ctx(ctx).Msg("Failed to update timeslot")
+		return nil, err
+	}
+
+	return event, nil
+}
+
+func (app *eventApplicationService) UpdateTimeSlot(ctx context.Context, cmd commands.UpdateTimeSlotCommand) (*entities.EventEntity, error) {
+	app.logger.Info().Ctx(ctx).Msg("Updating timeslot")
+
+	event, err := app.eventService.GetEventByID(ctx, app.queries, cmd.EventID)
+	if err != nil {
+		app.logger.Err(err).Ctx(ctx).Msg("Failed to get event by ID")
+		return nil, err
+	}
+
+	timeslot := event.TimeSlotByID(cmd.TimeSlotID)
+	if timeslot == nil {
+		return event, nil
+	}
+
+	timeslot.SongCount = cmd.SongCount
+
+	err = app.eventService.UpdateTimeSlot(ctx, app.queries, timeslot)
 	if err != nil {
 		app.logger.Err(err).Ctx(ctx).Msg("Failed to update timeslot")
 		return nil, err

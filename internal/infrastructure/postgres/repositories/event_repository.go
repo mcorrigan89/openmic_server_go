@@ -129,6 +129,7 @@ func (repo *postgresEventRepository) UpdateTimeSlot(ctx context.Context, querier
 		ID:                 timeslot.ID,
 		ArtistNameOverride: timeslot.NameOverride,
 		SortKey:            timeslot.SortKey,
+		SongCount:          timeslot.SongCount,
 	})
 	if err != nil {
 		return err

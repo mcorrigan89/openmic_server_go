@@ -39,7 +39,7 @@ ORDER BY timeslot.sort_key ASC;
 
 -- name: UpdateTimeSlot :many
 UPDATE timeslot
-SET artist_name_override = sqlc.arg(artist_name_override), sort_key = sqlc.arg(sort_key)
+SET artist_name_override = sqlc.arg(artist_name_override), sort_key = sqlc.arg(sort_key), song_count = sqlc.arg(song_count)
 WHERE id = sqlc.arg(id) RETURNING *;
 
 -- name: CreateTimeslotMarker :one

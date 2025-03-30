@@ -249,6 +249,26 @@ func (h *EventHandler) SetSortOrderRequest(ctx context.Context, input *dto.SetSo
 	}, nil
 }
 
+func (h *EventHandler) UpdateTimeSlot(ctx context.Context, input *dto.UpdateTimeSlotRequest) (*dto.UpdateTimeSlotResponse, error) {
+
+	cmd := commands.UpdateTimeSlotCommand{
+		EventID:    input.EventID,
+		TimeSlotID: input.TimeSlotID,
+		SongCount:  input.Body.SongCount,
+	}
+
+	event, err := h.eventAppService.UpdateTimeSlot(ctx, cmd)
+	if err != nil {
+		return nil, huma.Error500InternalServerError("Failed to update timeslot", err)
+	}
+
+	eventDto := dto.NewEventDtoFromEntity(event)
+
+	return &dto.UpdateTimeSlotResponse{
+		Body: eventDto,
+	}, nil
+}
+
 func (h *EventHandler) ListenForEventChange(ctx context.Context, input *struct {
 	ID uuid.UUID `path:"event_id"`
 }, send sse.Sender) {

@@ -39,3 +39,9 @@ func (c *UpdateArtistCommand) ToDomain() *entities.ArtistEntity {
 type DeleteArtistCommand struct {
 	ID uuid.UUID
 }
+
+type UpdateTimeSlotCommand struct {
+	EventID    uuid.UUID
+	TimeSlotID uuid.UUID
+	SongCount  int32
+}

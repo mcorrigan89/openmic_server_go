@@ -223,7 +223,7 @@ func (s *eventService) SetNowPlaying(ctx context.Context, querier models.Querier
 			ID:    uuid.New(),
 			Time:  "Playing",
 			Index: index,
-			Type:  "TIME",
+			Type:  "PLAYING",
 		}
 		err = s.eventRepo.CreateTimeslotMarker(ctx, querier, eventID, &newMarker)
 		if err != nil {

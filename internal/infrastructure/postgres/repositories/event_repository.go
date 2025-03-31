@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/mcorrigan89/openmic/internal/domain/entities"
@@ -62,14 +63,38 @@ func (repo *postgresEventRepository) GetEvents(ctx context.Context, querier mode
 	ctx, cancel := context.WithTimeout(ctx, postgres.DefaultTimeout)
 	defer cancel()
 
-	rows, err := querier.GetAllEvents(ctx)
+	rows, err := querier.GetAllEvents(ctx, time.Now())
 	if err != nil {
 		return nil, err
 	}
 
 	var eventEntities []*entities.EventEntity
 	for _, row := range rows {
-		eventEntities = append(eventEntities, entities.NewEventEntity(row.Event, nil, nil))
+		markerModels := make([]*models.TimeslotMarker, 0)
+
+		if row.Markers != nil {
+			err = json.Unmarshal(row.Markers, &markerModels)
+			if err != nil {
+				repo.logger.Err(err).Ctx(ctx).Msg("Failed to unmarshal markers")
+				return nil, err
+			}
+		}
+
+		timeslotRows, err := querier.TimeSlotsByEventID(ctx, row.Event.ID)
+		if err != nil {
+			repo.logger.Err(err).Ctx(ctx).Msg("Failed to get timeslots by event ID")
+			return nil, err
+		}
+
+		timeslotArgs := make([]*entities.NewEventEntitySlotsArgs, 0)
+		for _, timeslotRow := range timeslotRows {
+			timeslotArgs = append(timeslotArgs, &entities.NewEventEntitySlotsArgs{
+				TimeSlot: timeslotRow.Timeslot,
+				Artist:   timeslotRow.Artist,
+			})
+		}
+
+		eventEntities = append(eventEntities, entities.NewEventEntity(row.Event, timeslotArgs, markerModels))
 	}
 
 	return eventEntities, nil

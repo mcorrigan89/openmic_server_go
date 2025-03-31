@@ -119,7 +119,7 @@ func NewRouter(mux *http.ServeMux, middleware middleware.Middleware, userHandler
 	}, eventHandler.RemoveArtistFromEvent)
 
 	huma.Register(api, huma.Operation{
-		OperationID: "set-timeslot",
+		OperationID: "set-timeslot-marker",
 		Method:      http.MethodPost,
 		Path:        "/event/{event_id}/timeslot/marker",
 		Summary:     "Set Timeslot",
@@ -127,7 +127,7 @@ func NewRouter(mux *http.ServeMux, middleware middleware.Middleware, userHandler
 	}, eventHandler.SetTimeslotMarker)
 
 	huma.Register(api, huma.Operation{
-		OperationID: "delete-timeslot",
+		OperationID: "delete-timeslot-marker",
 		Method:      http.MethodDelete,
 		Path:        "/event/{event_id}/timeslot/marker",
 		Summary:     "Delete Timeslot",

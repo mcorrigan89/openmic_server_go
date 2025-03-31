@@ -154,6 +154,16 @@ func (s *eventService) SetTimeslotMarker(ctx context.Context, querier models.Que
 			s.logger.Err(err).Ctx(ctx).Msg("Failed to update timeslot marker")
 			return err
 		}
+
+		dupeMarker := event.TimeSlotMarkerDupeByIndex(index, timeslotDisplay)
+
+		if dupeMarker != nil {
+			err = s.eventRepo.DeleteTimeslotMarker(ctx, querier, dupeMarker.ID)
+			if err != nil {
+				s.logger.Err(err).Ctx(ctx).Msg("Failed to delete timeslot marker")
+				return err
+			}
+		}
 	} else {
 		newMarker := entities.TimeMarkerEntity{
 			ID:    uuid.New(),

@@ -6,6 +6,7 @@ package models
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -25,7 +26,7 @@ type Querier interface {
 	DeleteTimeslotMarker(ctx context.Context, id uuid.UUID) error
 	ExpireUserSession(ctx context.Context, id uuid.UUID) error
 	GetAllArtists(ctx context.Context) ([]GetAllArtistsRow, error)
-	GetAllEvents(ctx context.Context) ([]GetAllEventsRow, error)
+	GetAllEvents(ctx context.Context, startTime time.Time) ([]GetAllEventsRow, error)
 	GetArtistByID(ctx context.Context, id uuid.UUID) (GetArtistByIDRow, error)
 	GetArtistsByTitle(ctx context.Context, arg GetArtistsByTitleParams) ([]GetArtistsByTitleRow, error)
 	GetEventByID(ctx context.Context, id uuid.UUID) (GetEventByIDRow, error)

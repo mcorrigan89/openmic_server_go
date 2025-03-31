@@ -20,6 +20,7 @@ WHERE id = sqlc.arg(id);
 -- name: GetAllEvents :many
 SELECT sqlc.embed(event), COALESCE(json_agg(timeslot_marker.*) FILTER (WHERE timeslot_marker.event_id IS NOT NULL), '[]')::json as markers FROM event
 LEFT JOIN timeslot_marker ON event.id = timeslot_marker.event_id
+WHERE event.start_time >= sqlc.arg(start_time)
 GROUP BY event.id
 ORDER BY event.start_time ASC;
 

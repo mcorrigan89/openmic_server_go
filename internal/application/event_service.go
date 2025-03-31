@@ -13,6 +13,7 @@ import (
 	"github.com/mcorrigan89/openmic/internal/domain/entities"
 	"github.com/mcorrigan89/openmic/internal/domain/services"
 	"github.com/mcorrigan89/openmic/internal/infrastructure/bus"
+	"github.com/mcorrigan89/openmic/internal/infrastructure/postgres"
 	"github.com/mcorrigan89/openmic/internal/infrastructure/postgres/models"
 	"github.com/mcorrigan89/openmic/internal/interfaces/http/dto"
 
@@ -201,15 +202,31 @@ func (app *eventApplicationService) RemoveArtistFromEvent(ctx context.Context, c
 func (app *eventApplicationService) SetTimeslotMarker(ctx context.Context, cmd commands.SetTimeslotMarkerCommand) (*entities.EventEntity, error) {
 	app.logger.Info().Ctx(ctx).Msg("Setting timeslot marker")
 
-	err := app.eventService.SetTimeslotMarker(ctx, app.queries, cmd.EventID, cmd.SlotIndex, cmd.TimeDisplay)
+	tx, cancel, err := postgres.CreateTransaction(ctx, app.db)
+	defer cancel()
+	if err != nil {
+		app.logger.Err(err).Ctx(ctx).Msg("Failed to create transaction")
+		return nil, err
+	}
+	defer tx.Rollback(ctx)
+
+	qtx := models.New(app.db).WithTx(tx)
+
+	err = app.eventService.SetTimeslotMarker(ctx, qtx, cmd.EventID, cmd.SlotIndex, cmd.TimeDisplay)
 	if err != nil {
 		app.logger.Err(err).Ctx(ctx).Msg("Failed to set timeslot")
 		return nil, err
 	}
 
-	event, err := app.eventService.GetEventByID(ctx, app.queries, cmd.EventID)
+	event, err := app.eventService.GetEventByID(ctx, qtx, cmd.EventID)
 	if err != nil {
 		app.logger.Err(err).Ctx(ctx).Msg("Failed to get event by ID")
+		return nil, err
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		app.logger.Err(err).Ctx(ctx).Msg("Failed to commit transaction")
 		return nil, err
 	}
 

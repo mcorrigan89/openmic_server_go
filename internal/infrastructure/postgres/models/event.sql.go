@@ -123,6 +123,7 @@ func (q *Queries) DeleteTimeslotMarker(ctx context.Context, id uuid.UUID) error 
 const getAllEvents = `-- name: GetAllEvents :many
 SELECT event.id, event.event_type, event.start_time, event.end_time, event.created_at, event.updated_at, event.version, COALESCE(json_agg(timeslot_marker.*) FILTER (WHERE timeslot_marker.event_id IS NOT NULL), '[]')::json as markers FROM event
 LEFT JOIN timeslot_marker ON event.id = timeslot_marker.event_id
+WHERE event.start_time >= $1
 GROUP BY event.id
 ORDER BY event.start_time ASC
 `
@@ -132,8 +133,8 @@ type GetAllEventsRow struct {
 	Markers []byte `json:"markers"`
 }
 
-func (q *Queries) GetAllEvents(ctx context.Context) ([]GetAllEventsRow, error) {
-	rows, err := q.db.Query(ctx, getAllEvents)
+func (q *Queries) GetAllEvents(ctx context.Context, startTime time.Time) ([]GetAllEventsRow, error) {
+	rows, err := q.db.Query(ctx, getAllEvents, startTime)
 	if err != nil {
 		return nil, err
 	}

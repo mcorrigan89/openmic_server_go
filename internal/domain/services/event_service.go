@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/mcorrigan89/openmic/internal/common"
@@ -45,7 +46,10 @@ func (s *eventService) GetEventByID(ctx context.Context, querier models.Querier,
 }
 
 func (s *eventService) GetEvents(ctx context.Context, querier models.Querier) ([]*entities.EventEntity, error) {
-	events, err := s.eventRepo.GetEvents(ctx, querier)
+
+	oneDayDuration := 24 * time.Hour
+	date := time.Now().Add(-oneDayDuration)
+	events, err := s.eventRepo.GetEvents(ctx, querier, date)
 	if err != nil {
 		s.logger.Err(err).Ctx(ctx).Msg("Failed to get events")
 		return nil, err

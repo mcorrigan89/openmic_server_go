@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/mcorrigan89/openmic/internal/domain/entities"
@@ -10,7 +11,7 @@ import (
 
 type EventRepository interface {
 	GetEventByID(ctx context.Context, querier models.Querier, id uuid.UUID) (*entities.EventEntity, error)
-	GetEvents(ctx context.Context, querier models.Querier) ([]*entities.EventEntity, error)
+	GetEvents(ctx context.Context, querier models.Querier, afterDate time.Time) ([]*entities.EventEntity, error)
 	CreateEvent(ctx context.Context, querier models.Querier, event *entities.EventEntity) (*entities.EventEntity, error)
 	UpdateEvent(ctx context.Context, querier models.Querier, event *entities.EventEntity) (*entities.EventEntity, error)
 	DeleteEvent(ctx context.Context, querier models.Querier, id uuid.UUID) error

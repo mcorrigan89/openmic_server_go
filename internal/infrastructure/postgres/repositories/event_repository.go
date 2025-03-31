@@ -59,11 +59,11 @@ func (repo *postgresEventRepository) GetEventByID(ctx context.Context, querier m
 	return entities.NewEventEntity(row.Event, timeslotArgs, markerModels), nil
 }
 
-func (repo *postgresEventRepository) GetEvents(ctx context.Context, querier models.Querier) ([]*entities.EventEntity, error) {
+func (repo *postgresEventRepository) GetEvents(ctx context.Context, querier models.Querier, afterDate time.Time) ([]*entities.EventEntity, error) {
 	ctx, cancel := context.WithTimeout(ctx, postgres.DefaultTimeout)
 	defer cancel()
 
-	rows, err := querier.GetAllEvents(ctx, time.Now())
+	rows, err := querier.GetAllEvents(ctx, afterDate)
 	if err != nil {
 		return nil, err
 	}

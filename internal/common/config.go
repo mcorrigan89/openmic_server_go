@@ -78,7 +78,7 @@ func LoadConfig(cfg *Config) {
 
 	cfg.DB.DSN = postgres_url
 
-	cfg.Cors.TrustedOrigins = []string{"http://localhost:3000"}
+	cfg.Cors.TrustedOrigins = []string{"http://localhost:3000", "https://openmicmpls.com", "https://www.openmicmpls.com", "openmicmpls.com", "test.openmicmpls.com", "https://test.openmicmpls.com"}
 
 	endpoint := os.Getenv("MINIO_ENDPOINT")
 	if endpoint == "" {

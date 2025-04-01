@@ -102,7 +102,7 @@ func (app *eventApplicationService) GetCurrentEvent(ctx context.Context, query q
 		return nil, nil
 	}
 
-	event, err := app.eventService.GetEventByID(ctx, app.queries, currentEventID)
+	event, err := app.eventService.GetEventByID(ctx, app.queries, events[0].ID)
 	if err != nil {
 		app.logger.Err(err).Ctx(ctx).Msg("Failed to get event by ID")
 		return nil, err

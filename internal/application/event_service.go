@@ -92,7 +92,7 @@ func (app *eventApplicationService) GetCurrentEvent(ctx context.Context, query q
 
 	for _, event := range events {
 		year, month, day := event.StartTime.Date()
-		if year == currentYear && month == currentMonth && day == currentDay {
+		if year == currentYear && month == currentMonth && (day == currentDay || day == currentDay+1) {
 			currentEventID = event.ID
 			break
 		}

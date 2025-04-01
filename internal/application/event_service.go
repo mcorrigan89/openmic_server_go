@@ -3,9 +3,7 @@ package application
 import (
 	"context"
 	"sync"
-	"time"
 
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/mcorrigan89/openmic/internal/application/commands"
 	"github.com/mcorrigan89/openmic/internal/application/queries"
@@ -87,20 +85,20 @@ func (app *eventApplicationService) GetCurrentEvent(ctx context.Context, query q
 		return nil, err
 	}
 
-	currentYear, currentMonth, currentDay := time.Now().Date()
-	var currentEventID uuid.UUID
+	// currentYear, currentMonth, currentDay := time.Now().Date()
+	// var currentEventID uuid.UUID
 
-	for _, event := range events {
-		year, month, day := event.StartTime.Date()
-		if year == currentYear && month == currentMonth && (day == currentDay || day == currentDay+1) {
-			currentEventID = event.ID
-			break
-		}
-	}
+	// for _, event := range events {
+	// 	year, month, day := event.StartTime.Date()
+	// 	if year == currentYear && month == currentMonth && (day == currentDay || day == currentDay+1) {
+	// 		currentEventID = event.ID
+	// 		break
+	// 	}
+	// }
 
-	if currentEventID == uuid.Nil {
-		return nil, nil
-	}
+	// if currentEventID == uuid.Nil {
+	// 	return nil, nil
+	// }
 
 	event, err := app.eventService.GetEventByID(ctx, app.queries, events[0].ID)
 	if err != nil {

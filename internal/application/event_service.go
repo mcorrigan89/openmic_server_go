@@ -87,16 +87,30 @@ func (app *eventApplicationService) GetCurrentEvent(ctx context.Context, query q
 		return nil, err
 	}
 
-	currentYear, currentMonth, currentDay := time.Now().Date()
+	// Show up 24 hours before start date
+
 	var currentEventID uuid.UUID
+	currentTime := time.Now()
+	currentTimeMinus24 := currentTime.Add(-24 * time.Hour)
+	currentTimePlus8 := currentTime.Add(8 * time.Hour)
 
 	for _, event := range events {
-		year, month, day := event.StartTime.Date()
-		if year == currentYear && month == currentMonth && (day == currentDay || day == currentDay+1) {
+		if event.StartTime.Before(currentTimeMinus24) && event.EndTime.After(currentTimePlus8) && event.EventType == "OPEN_MIC" {
 			currentEventID = event.ID
 			break
 		}
 	}
+
+	// currentYear, currentMonth, currentDay := time.Now().Date()
+	// var currentEventID uuid.UUID
+
+	// for _, event := range events {
+	// 	year, month, day := event.StartTime.Date()
+	// 	if year == currentYear && month == currentMonth && (day == currentDay || day == currentDay+1) {
+	// 		currentEventID = event.ID
+	// 		break
+	// 	}
+	// }
 
 	if currentEventID == uuid.Nil {
 		return nil, nil

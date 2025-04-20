@@ -212,11 +212,20 @@ func (s *eventService) SetNowPlaying(ctx context.Context, querier models.Querier
 
 	markerEntity := event.NowPlayingTimeSlotMarker()
 	if markerEntity != nil {
-		markerEntity.Index = index
-		err = s.eventRepo.UpdateTimeslotMarker(ctx, querier, markerEntity)
-		if err != nil {
-			s.logger.Err(err).Ctx(ctx).Msg("Failed to update timeslot marker")
-			return err
+		if markerEntity.Index == index {
+			err := s.eventRepo.DeleteTimeslotMarker(ctx, querier, markerEntity.ID)
+			if err != nil {
+				s.logger.Err(err).Ctx(ctx).Msg("Failed to delete timeslot marker")
+				return err
+			}
+			return nil
+		} else {
+			markerEntity.Index = index
+			err = s.eventRepo.UpdateTimeslotMarker(ctx, querier, markerEntity)
+			if err != nil {
+				s.logger.Err(err).Ctx(ctx).Msg("Failed to update timeslot marker")
+				return err
+			}
 		}
 	} else {
 		newMarker := entities.TimeMarkerEntity{

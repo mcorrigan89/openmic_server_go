@@ -95,7 +95,7 @@ func (app *eventApplicationService) GetCurrentEvent(ctx context.Context, query q
 	for _, event := range events {
 		eventTimeMinus := event.StartTime.Add(-30 * time.Hour)
 		eventTimePlus := event.StartTime.Add(8 * time.Hour)
-		if eventTimeMinus.After(currentTime) && eventTimePlus.After(currentTime) && event.EventType == "OPEN_MIC" {
+		if eventTimeMinus.After(currentTime) && eventTimePlus.Before(currentTime) && event.EventType == "OPEN_MIC" {
 			currentEventID = event.ID
 			break
 		}

@@ -25,6 +25,7 @@ type EventDto struct {
 	ID        uuid.UUID         `json:"id"`
 	StartTime string            `json:"start_time"`
 	EndTime   string            `json:"end_time"`
+	IsCurrent bool              `json:"is_current"`
 	EventType string            `json:"event_type"`
 	TimeSlots []*TimeslotDto    `json:"time_slots"`
 	Markers   []*TimesMarkerDto `json:"time_markers"`
@@ -56,6 +57,7 @@ func NewEventDtoFromEntity(entity *entities.EventEntity) *EventDto {
 		ID:        entity.ID,
 		StartTime: entity.StartTime.Format(time.RFC1123Z),
 		EndTime:   entity.EndTime.Format(time.RFC1123Z),
+		IsCurrent: entity.IsCurrent(),
 		EventType: entity.EventType,
 		TimeSlots: timeslotDtos,
 		Markers:   timeMarkerDtos,

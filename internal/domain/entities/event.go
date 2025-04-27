@@ -191,6 +191,14 @@ func (e *EventEntity) TimeSlotMarkerByID(id uuid.UUID) *TimeMarkerEntity {
 	return marker
 }
 
+func (e *EventEntity) IsCurrent() bool {
+	currentTime := time.Now()
+	eventTimeMinus := e.StartTime.Add(-30 * time.Hour)
+	eventTimePlus := e.StartTime.Add(8 * time.Hour)
+
+	return eventTimeMinus.Before(currentTime) && eventTimePlus.After(currentTime)
+}
+
 func newTimeSlotEntity(timeSlotModel models.Timeslot, artistModel models.Artist, slotTime time.Time) *TimeSlotEntity {
 	return &TimeSlotEntity{
 		ID:          timeSlotModel.ID,

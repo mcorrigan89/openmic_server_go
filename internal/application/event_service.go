@@ -3,7 +3,6 @@ package application
 import (
 	"context"
 	"sync"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -90,12 +89,9 @@ func (app *eventApplicationService) GetCurrentEvent(ctx context.Context, query q
 	// Show up 24 hours before start date
 
 	var currentEventID uuid.UUID
-	currentTime := time.Now()
 
 	for _, event := range events {
-		eventTimeMinus := event.StartTime.Add(-30 * time.Hour)
-		eventTimePlus := event.StartTime.Add(8 * time.Hour)
-		if eventTimeMinus.Before(currentTime) && eventTimePlus.After(currentTime) && event.EventType == "OPEN_MIC" {
+		if event.IsCurrent() && event.EventType == "OPEN_MIC" {
 			currentEventID = event.ID
 			break
 		}
@@ -105,7 +101,7 @@ func (app *eventApplicationService) GetCurrentEvent(ctx context.Context, query q
 		return nil, nil
 	}
 
-	event, err := app.eventService.GetEventByID(ctx, app.queries, events[0].ID)
+	event, err := app.eventService.GetEventByID(ctx, app.queries, currentEventID)
 	if err != nil {
 		app.logger.Err(err).Ctx(ctx).Msg("Failed to get event by ID")
 		return nil, err
